@@ -8,7 +8,7 @@
 │ core:data  Room ─ Repository ─ Sync │◀─Layer─▶│                      │
 │   ↓ GameEngine (core:game)          │        └──────────────────────┘
 └──────────────┬──────────────────────┘
-               │ HTTPS (Tailscale serve)   X-Api-Key
+               │ HTTPS (Tailscale serve)   Bearer 세션 (Google 로그인)
 ┌──────────────▼──────────────────────┐
 │ Windows PC: Ktor 서버 + PostgreSQL   │
 │   같은 core:game 으로 검산 (/profile) │
@@ -68,7 +68,13 @@ server ── core:protocol ── core:game
 ### ADR-5. 서버는 내 PC + Tailscale
 - **결정**: 클라우드 대신 24시간 켜진 Windows PC. 외부 접속은 Tailscale 사설망, `tailscale serve` 로 HTTPS.
 - **이유**: 비용 0, 데이터가 내 손에. 인터넷에 포트를 열지 않는다.
-- **인증**: v1 은 API 키 (`X-Api-Key`, 상수 시간 비교). → v1.1 에서 Google 로그인으로 교체 예정.
+- **인증**: v1 은 API 키 (`X-Api-Key`, 상수 시간 비교). v1.1 에서 Google 로그인으로 교체 (ADR-9).
+
+### ADR-9. Google 로그인 + 계정별 저장 (v1.1)
+- **결정**: 앱은 Credential Manager 로 Google ID 토큰을 받고, 서버가 Google 공개키로 검증한 뒤 자체 세션 토큰을 발급한다. 모든 기록은 user_id 로 나눈다.
+- **이유**: 키를 손으로 옮겨 적는 불편 제거, 폰을 바꿔도 계정으로 이어짐, 나중에 클랜(여러 사용자) 기능의 기반.
+- **세부**: ID 토큰(1시간)은 로그인에만 쓰고, 이후엔 서버 세션 토큰. DB 에는 토큰의 SHA-256 만 저장. 허용 이메일 목록으로 한 번 더 제한.
+- **로그인 시 합치기**: 서버 기록과 폰 기록을 LWW 로 합치고, 게임 시작일은 둘 중 더 이른 날.
 
 ### ADR-6. 수동 DI (DataContainer)
 - **결정**: Hilt 없이 `DataContainer` 한 파일에서 객체를 만든다.

@@ -34,6 +34,7 @@
 | 66일 뒤에도 계속 | 시즌 2, 3 … 자동 연장, 레벨은 끝없이 |
 | 기기 어디서든 | 폴드 커버(1화면) / 펼침(2화면) / 갤럭시 워치 |
 | 오프라인 우선 | 폰에 먼저 저장, 서버와는 뒤에서 동기화 |
+| 폰을 바꿔도 이어서 | Google 계정으로 로그인하면 서버의 내 기록과 합쳐진다 |
 
 ## 개발하면서 신경 쓴 것
 - **오래 고칠 앱이라 구조부터**: 멀티모듈(화면 1개 = 모듈 1개) + convention plugin, 버전은 한 파일에서 관리
@@ -52,7 +53,7 @@
 - [x] 워치 앱
 - [x] 실기기(갤럭시 폴드) 설치 · 실행
 - [ ] PC 서버 실제 구동 · 폰 동기화 (#7)
-- [ ] Google 로그인 + 계정별 저장 (`feature/google-login`, #17)
+- [x] Google 로그인 + 계정별 저장 (#17)
 - [ ] 시즌 티어 · 러닝 기록(Health Connect) · 클랜 · 헬스장 모드 (Backlog)
 
 ---
@@ -78,10 +79,12 @@ habit-quest/
 │  │  └─ seed/         DefaultQuests (첫 실행 때 넣는 9개 퀘스트)
 │  │
 │  ├─ protocol/        폰·서버·워치가 주고받는 형식 (순수 Kotlin)
+│  │  ├─ auth/         AuthDtos (Google 로그인 요청/응답)
 │  │  ├─ sync/         SyncDtos, SyncMappers (폰 ↔ 서버)
 │  │  └─ wear/         WearProtocol (폰 ↔ 워치 경로·데이터)
 │  │
-│  ├─ data/            폰 저장소 (Room DB, 동기화, 설정)
+│  ├─ data/            폰 저장소 (Room DB, 동기화, 설정, 로그인)
+│  │  ├─ auth/         GoogleSignIn (계정 선택 창 → ID 토큰)
 │  │  ├─ db/           Entities, Daos, LifeResetDatabase, EntityMappers
 │  │  ├─ repository/   Quest / Completion / Settings / Game 저장소
 │  │  ├─ sync/         ServerApi(OkHttp), SyncManager, SyncScheduling(WorkManager)
@@ -118,9 +121,10 @@ habit-quest/
 │
 ├─ server/             PC 서버 (Ktor + PostgreSQL)
 │  ├─ config/ServerConfig.kt   환경변수 읽기
-│  ├─ db/                      Tables, DatabaseFactory
-│  ├─ store/SyncStore.kt       push(최신 우선 저장) / pull(바뀐 것만)
-│  ├─ routes/Routing.kt        /health, /sync/push, /sync/pull, /profile
+│  ├─ auth/                    GoogleTokenVerifier(토큰 검증), AuthService(사용자·세션)
+│  ├─ db/                      Tables(users, sessions, quests, completions, settings), DatabaseFactory
+│  ├─ store/SyncStore.kt       사용자별 push(최신 우선 저장) / pull(바뀐 것만)
+│  ├─ routes/                  Routing(경로 목록), AuthRoutes(/auth/*), SyncRoutes(/sync/*, /profile)
 │  └─ scripts/windows/         start-server.bat, backup-db.ps1
 │
 ├─ docs/
@@ -128,6 +132,7 @@ habit-quest/
 │  ├─ architecture.md         모듈 구조와 설계 결정(ADR)
 │  ├─ design/                 디자인 규칙, 변천사, 시안(HTML) + 캡처
 │  ├─ dev-log.md              트러블슈팅 기록
+│  ├─ google-login-setup.md   Google Cloud 에 앱 등록 (로그인 버튼이 동작하려면 필요)
 │  └─ server-setup.md         Windows 서버 설치 순서
 └─ .github/                   이슈·PR 템플릿
 ```
@@ -154,6 +159,7 @@ server ── core:protocol ── core:game
 2. 완료 탭 → Room 에 기록(dirty) → 상태 재계산 → 이전/이후 상태를 비교(`FxDiff`)해서 연출 사건 발생
    → `FxHost` 가 클리어 → 완벽한 하루 → 레벨업 → 랭크업 순서로 하나씩 보여주고 소리·진동.
 3. 5초 뒤 WorkManager 가 서버에 push/pull (15분마다 한 번 더). 충돌은 `updatedAt` 이 더 최근인 쪽이 이긴다.
+   서버는 `Authorization: Bearer 세션토큰` 으로 사용자를 알아보고 그 사용자의 행만 읽고 쓴다.
 4. 상태가 바뀔 때마다 워치로 요약을 보낸다. 워치에서 탭하면 폰이 완료 처리 → 다시 워치로.
 
 ---
@@ -186,9 +192,10 @@ server ── core:protocol ── core:game
 
 1. PostgreSQL 설치 → `lifereset` DB/사용자 생성
 2. `gradlew -PserverOnly=true :server:buildFatJar` → `server/build/libs/life-reset-server.jar`
-3. jar 와 `start-server.bat` 을 `C:\life-reset\` 에 두고, bat 안의 API 키·DB 비밀번호를 채운다
-4. 작업 스케줄러에 "로그온 시 실행" 등록
-5. Tailscale 설치 → `tailscale serve --bg 8080` → 앱 설정에 `https://PC이름.tailnet이름.ts.net` + API 키 입력
+3. Google Cloud 에 웹·Android 클라이언트 등록 → [docs/google-login-setup.md](docs/google-login-setup.md)
+4. jar 와 `start-server.bat` 을 `C:\life-reset\` 에 두고, bat 안의 Google 클라이언트 ID·허용 이메일·DB 비밀번호를 채운다
+5. 작업 스케줄러에 "로그온 시 실행" 등록
+6. Tailscale 설치 → `tailscale serve --bg 8080` → 앱 설정에 `https://PC이름.tailnet이름.ts.net` 입력 → **Google 계정으로 로그인**
 
 ---
 
