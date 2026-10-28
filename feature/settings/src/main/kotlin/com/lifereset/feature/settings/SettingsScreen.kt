@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.lifereset.core.data.auth.AccountManager
 import com.lifereset.core.data.repository.SettingsRepository
 import com.lifereset.core.data.sync.SyncManager
 import com.lifereset.core.designsystem.component.HeroHeader
@@ -42,9 +43,10 @@ import java.util.Locale
 fun SettingsRoute(
     settings: SettingsRepository,
     sync: SyncManager,
+    accounts: AccountManager,
     onOpenQuests: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.factory(settings, sync)),
+    viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.factory(settings, sync, accounts)),
 ) {
     val form by viewModel.form.collectAsStateWithLifecycle()
     val status by viewModel.syncStatus.collectAsStateWithLifecycle()
@@ -55,6 +57,7 @@ fun SettingsRoute(
     val soundEnabled by viewModel.soundEnabled.collectAsStateWithLifecycle()
     val account by viewModel.account.collectAsStateWithLifecycle()
     var confirmRestore by remember { mutableStateOf(false) }
+    var showServer by remember { mutableStateOf(false) }
     val colors = LrTheme.colors
     val context = LocalContext.current
 
@@ -104,13 +107,8 @@ fun SettingsRoute(
             }
         }
 
-        LrPanel(title = "ACCOUNT · SERVER", contentPadding = PaddingValues(16.dp)) {
+        LrPanel(title = "ACCOUNT", contentPadding = PaddingValues(16.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                LrField("서버 주소", hint = "Tailscale 주소. 예: https://내PC이름.tailnet이름.ts.net") {
-                    LrTextField(form.serverUrl, { v -> viewModel.edit { it.copy(serverUrl = v) } }, placeholder = "https://")
-                }
-                LrWideButton("주소 저장하고 연결 확인", onClick = { viewModel.saveServer() }, icon = LrIcons.Confirm)
-
                 val signedIn = account
                 if (signedIn == null) {
                     LrWideButton(
@@ -145,6 +143,24 @@ fun SettingsRoute(
                 )
                 if (busy) Text("처리 중…", style = LrTheme.type.caption, color = colors.textSecondary)
                 message?.let { Text(it, style = LrTheme.type.bodyStrong, color = colors.textPrimary) }
+            }
+        }
+
+        // 서버 주소는 앱에 들어 있어서 평소엔 숨긴다. 주소가 없을 때(직접 빌드한 경우)만 펼쳐서 보여준다.
+        val serverOpen = showServer || form.serverUrl.isBlank()
+        LrWideButton(
+            if (serverOpen) "서버 주소 닫기" else "서버 주소 (고급)",
+            onClick = { showServer = !showServer },
+            icon = LrIcons.Settings,
+        )
+        if (serverOpen) {
+            LrPanel(title = "SERVER", contentPadding = PaddingValues(16.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    LrField("서버 주소", hint = "보통은 바꿀 필요 없음. 다른 서버를 쓸 때만 https:// 주소 입력") {
+                        LrTextField(form.serverUrl, { v -> viewModel.edit { it.copy(serverUrl = v) } }, placeholder = "https://")
+                    }
+                    LrWideButton("주소 저장하고 연결 확인", onClick = { viewModel.saveServer() }, icon = LrIcons.Confirm)
+                }
             }
         }
     }

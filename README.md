@@ -45,15 +45,16 @@
 - **과정을 남김**: 설계 결정(ADR), 디자인 변천사, 트러블슈팅 기록, Issues · Milestones
 
 **기술**: Kotlin · Jetpack Compose · Room · WorkManager · Wear OS (Data Layer) · Ktor · Exposed · PostgreSQL · Tailscale
-**문서**: [게임 설계](docs/game-design.md) · [아키텍처 · 설계 결정](docs/architecture.md) · [디자인](docs/design/README.md) · [개발 기록 · 트러블슈팅](docs/dev-log.md) · [서버 설치](docs/server-setup.md)
+**문서**: [게임 설계](docs/game-design.md) · [아키텍처 · 설계 결정](docs/architecture.md) · [디자인](docs/design/README.md) · [개발 기록 · 트러블슈팅](docs/dev-log.md) · [서버 설치](docs/server-setup.md) · [다른 사람과 같이 쓰기](docs/sharing.md)
 
 ## 진행 상황
 - [x] 게임 규칙 · 엔진 · 테스트
 - [x] 폰 앱 (화면 5종, 연출 · 효과음, 폴드 2분할)
 - [x] 워치 앱
 - [x] 실기기(갤럭시 폴드) 설치 · 실행
-- [ ] PC 서버 실제 구동 · 폰 동기화 (#7)
+- [x] PC 서버 실제 구동 · 폰 동기화 (#7)
 - [x] Google 로그인 + 계정별 저장 (#17)
+- [ ] 누구나 로그인 · 자동 동기화: 시작 화면, 기본 서버 주소, 앱 열 때 동기화 (v1.2)
 - [ ] 시즌 티어 · 러닝 기록(Health Connect) · 클랜 · 헬스장 모드 (Backlog)
 
 ---
@@ -100,6 +101,7 @@ habit-quest/
 │     └─ sound/        FxSounds (효과음: res/raw 파일 또는 기본 합성음)
 │
 ├─ feature/            화면 1개 = 모듈 1개. 화면끼리는 서로 모른다.
+│  ├─ onboarding/      첫 실행 시작 화면 (Google 계정으로 시작 / 로그인 없이 시작)
 │  ├─ today/           오늘: Day/시즌, 레벨·EXP, 일일 퀘스트, 회복 퀘스트, 주간 보스, 완료/기록 추가 창
 │  ├─ status/          상태: 레벨·클래스·랭크, 능력치 6종, 다음 레벨업 분배 예상, 레벨업 기록
 │  ├─ record/          기록: 시즌 66칸 잔디, 마일스톤, 누적, 지난 시즌
@@ -133,6 +135,7 @@ habit-quest/
 │  ├─ design/                 디자인 규칙, 변천사, 시안(HTML) + 캡처
 │  ├─ dev-log.md              트러블슈팅 기록
 │  ├─ google-login-setup.md   Google Cloud 에 앱 등록 (로그인 버튼이 동작하려면 필요)
+│  ├─ sharing.md             다른 사람과 같이 쓰기 (서버 주소 내장, 공유·공개, 허용 계정)
 │  └─ server-setup.md         Windows 서버 설치 순서
 └─ .github/                   이슈·PR 템플릿
 ```

@@ -32,6 +32,7 @@ if (!serverOnly) {
     include(":core:designsystem")
 
     // 화면 (기능 하나 = 모듈 하나)
+    include(":feature:onboarding")
     include(":feature:today")
     include(":feature:status")
     include(":feature:record")

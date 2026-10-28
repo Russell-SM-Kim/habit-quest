@@ -12,14 +12,22 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.calllogging.CallLogging
+import io.ktor.server.plugins.origin
+import io.ktor.server.plugins.ratelimit.RateLimit
+import io.ktor.server.plugins.ratelimit.RateLimitName
+import io.ktor.server.plugins.ratelimit.rateLimit
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import kotlinx.serialization.Serializable
+import kotlin.time.Duration.Companion.minutes
 
-internal const val VERSION = "1.1.0"
+internal const val VERSION = "1.2.0"
+
+/** 로그인 시도 제한: 같은 곳에서 1분에 20번까지. 여러 사람이 쓰는 서버에서 무작위 시도를 막는다. */
+private val AUTH_LIMIT = RateLimitName("auth")
 
 /**
  * 서버의 모든 경로:
@@ -38,6 +46,16 @@ fun Application.configureRouting(
 ) {
     install(ContentNegotiation) { json(ProtocolJson) }
     install(CallLogging)
+    install(RateLimit) {
+        register(AUTH_LIMIT) {
+            rateLimiter(limit = 20, refillPeriod = 1.minutes)
+            // Tailscale serve/funnel 을 거치면 원래 주소는 X-Forwarded-For 에 들어 있다
+            requestKey { call ->
+                call.request.headers["X-Forwarded-For"]?.substringBefore(',')?.trim()
+                    ?: call.request.origin.remoteHost
+            }
+        }
+    }
     install(StatusPages) {
         exception<AuthException> { call, cause ->
             val status = if (cause.forbidden) HttpStatusCode.Forbidden else HttpStatusCode.Unauthorized
@@ -63,7 +81,9 @@ fun Application.configureRouting(
                 ),
             )
         }
-        authRoutes(auth)
+        rateLimit(AUTH_LIMIT) {
+            authRoutes(auth)
+        }
         syncRoutes(config, auth, store, engine)
     }
 }

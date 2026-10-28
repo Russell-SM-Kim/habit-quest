@@ -10,7 +10,8 @@ cd /d %~dp0
 REM Google 로그인: Google Cloud 콘솔에서 만든 "웹 애플리케이션" 클라이언트 ID (docs/google-login-setup.md)
 set LIFE_RESET_GOOGLE_CLIENT_ID=여기에-숫자-xxxx.apps.googleusercontent.com
 
-REM 로그인을 허용할 Gmail (쉼표로 여러 개). 비우면 아무 Google 계정이나 로그인 가능.
+REM 로그인을 허용할 Gmail (쉼표로 여러 개). 친구를 추가하면 서버를 다시 켜야 적용된다.
+REM 비우면 Google 계정이면 누구나 가입 (공개 가입 - 서버 시작 시 경고가 뜬다).
 set LIFE_RESET_ALLOWED_EMAILS=본인@gmail.com
 
 REM PostgreSQL 접속 정보 (docs/server-setup.md 의 3단계에서 만든 값)

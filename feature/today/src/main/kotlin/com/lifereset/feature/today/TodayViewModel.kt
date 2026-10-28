@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.lifereset.core.data.repository.GameRepository
 import com.lifereset.core.data.repository.SettingsRepository
+import com.lifereset.core.data.repository.SyncStatus
 import com.lifereset.core.game.model.PlayerState
 import com.lifereset.core.game.model.QuestDef
 import com.lifereset.core.game.model.QuestSlot
@@ -15,13 +16,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class TodayUiState(
     val player: PlayerState? = null,
     val playerName: String = "",
+    /** "동기화 3분 전" 같은 한 줄. 로그인 안 했으면 null (표시 안 함). */
+    val syncLabel: String? = null,
 )
 
 /** 오늘 화면에서 열리는 작은 창. */
@@ -38,8 +43,22 @@ class TodayViewModel(
     settings: SettingsRepository,
 ) : ViewModel() {
 
-    val uiState: StateFlow<TodayUiState> = combine(game.state, settings.playerName) { player, name ->
-        TodayUiState(player, name)
+    /** "n분 전" 글자를 갱신하기 위한 1분 시계 */
+    private val minuteTick = flow {
+        while (true) {
+            emit(System.currentTimeMillis())
+            delay(60_000)
+        }
+    }
+
+    val uiState: StateFlow<TodayUiState> = combine(
+        game.state,
+        settings.playerName,
+        settings.syncStatus,
+        settings.account,
+        minuteTick,
+    ) { player, name, sync, account, now ->
+        TodayUiState(player, name, if (account == null) null else syncLabel(sync, now))
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TodayUiState())
 
     private val _dialog = MutableStateFlow<TodayDialog?>(null)
@@ -82,6 +101,19 @@ class TodayViewModel(
 
     fun dismissDialog() {
         _dialog.value = null
+    }
+
+    private fun syncLabel(status: SyncStatus, now: Long): String {
+        val at = status.lastSyncAt ?: return "동기화 대기 중"
+        if (!status.ok) return "동기화 실패 · 설정에서 확인"
+        val minutes = (now - at).coerceAtLeast(0) / 60_000
+        val ago = when {
+            minutes < 1 -> "방금"
+            minutes < 60 -> "${minutes}분 전"
+            minutes < 60 * 24 -> "${minutes / 60}시간 전"
+            else -> "${minutes / (60 * 24)}일 전"
+        }
+        return "동기화 $ago"
     }
 
     private fun QuestSlot.needsInput(): Boolean =

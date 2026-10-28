@@ -34,14 +34,14 @@ import com.lifereset.core.game.model.PlayerState
  * ② 유리창: 레벨 원, 이름, 클래스·랭크, EXP 게이지
  */
 @Composable
-internal fun PlayerHeader(player: PlayerState, name: String) {
+internal fun PlayerHeader(player: PlayerState, name: String, syncLabel: String? = null) {
     val colors = LrTheme.colors
     val season = player.season
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         HeroHeader(
             title = "Day ${season.day}",
             suffix = "/ ${season.seasonLength}",
-            caption = "Season ${season.season} · ${season.daysLeft}일 남음",
+            caption = listOfNotNull("Season ${season.season} · ${season.daysLeft}일 남음", syncLabel).joinToString(" · "),
             progress = season.progress,
             end = { StreakBadge(player.streak, player.shields) },
         )

@@ -31,6 +31,7 @@ import com.lifereset.core.designsystem.component.NavEntry
 import com.lifereset.core.designsystem.fx.FxHost
 import com.lifereset.core.designsystem.sound.FxSounds
 import com.lifereset.core.designsystem.theme.LrTheme
+import com.lifereset.feature.onboarding.WelcomeRoute
 import com.lifereset.feature.quests.QuestEditRoute
 import com.lifereset.feature.quests.QuestListRoute
 import com.lifereset.feature.record.RecordRoute
@@ -42,6 +43,7 @@ import com.lifereset.feature.today.TodayRoute
  * 앱의 뼈대.
  *
  *  [배경(하늘 또는 내 사진)]
+ *    └ 처음 켰을 때(로그인 전): 시작 화면 (WelcomeRoute)
  *    └ 접힘(폭 < 600dp): 화면 + 아래 원형 메뉴
  *    └ 펼침(폭 ≥ 600dp, 폴드 안쪽 화면): 왼쪽 세로 메뉴 + 화면 두 개 나란히 (WidePanes)
  *  [맨 위: 연출 레이어 FxHost]
@@ -55,10 +57,31 @@ fun LifeResetApp(container: DataContainer, sounds: FxSounds? = null) {
     val currentRoute = backStack?.destination?.route
     val selectedTab = TopLevel.entries.indexOfFirst { it.route == currentRoute }
     val backgroundUri by container.settingsRepository.backgroundUri.collectAsStateWithLifecycle(initialValue = null)
+    // null = 아직 읽는 중 (시작 화면이 깜빡이지 않게 배경만 보여준다)
+    val onboardingDone by container.settingsRepository.onboardingDone.collectAsStateWithLifecycle(initialValue = null)
     val navEntries = TopLevel.entries.map { NavEntry(it.label, it.icon) }
     val onSelectTab: (Int) -> Unit = { index -> nav.navigateToTab(TopLevel.entries[index]) }
 
     LrBackground(imageUri = backgroundUri) {
+        when (onboardingDone) {
+            null -> Unit
+            false -> WelcomeRoute(settings = container.settingsRepository, accounts = container.accountManager)
+            true -> MainShell(container, nav, selectedTab, navEntries, onSelectTab, sounds)
+        }
+    }
+}
+
+/** 시작 화면을 지난 뒤의 앱: 접힘/펼침 레이아웃 + 연출 레이어. */
+@Composable
+private fun MainShell(
+    container: DataContainer,
+    nav: NavHostController,
+    selectedTab: Int,
+    navEntries: List<NavEntry>,
+    onSelectTab: (Int) -> Unit,
+    sounds: FxSounds?,
+) {
+    Box(Modifier.fillMaxSize()) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val wide = maxWidth >= LrTheme.Dimens.wideBreakpoint
 
@@ -110,6 +133,7 @@ private fun AppNavHost(
         SettingsRoute(
             settings = container.settingsRepository,
             sync = container.syncManager,
+            accounts = container.accountManager,
             onOpenQuests = { nav.navigate(Routes.QUESTS) },
         )
     }
