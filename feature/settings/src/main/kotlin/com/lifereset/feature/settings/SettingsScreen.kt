@@ -53,6 +53,7 @@ fun SettingsRoute(
     val gameStart by viewModel.gameStart.collectAsStateWithLifecycle()
     val backgroundUri by viewModel.backgroundUri.collectAsStateWithLifecycle()
     val soundEnabled by viewModel.soundEnabled.collectAsStateWithLifecycle()
+    val account by viewModel.account.collectAsStateWithLifecycle()
     var confirmRestore by remember { mutableStateOf(false) }
     val colors = LrTheme.colors
     val context = LocalContext.current
@@ -103,17 +104,36 @@ fun SettingsRoute(
             }
         }
 
-        LrPanel(title = "SERVER", contentPadding = PaddingValues(16.dp)) {
+        LrPanel(title = "ACCOUNT · SERVER", contentPadding = PaddingValues(16.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 LrField("서버 주소", hint = "Tailscale 주소. 예: https://내PC이름.tailnet이름.ts.net") {
                     LrTextField(form.serverUrl, { v -> viewModel.edit { it.copy(serverUrl = v) } }, placeholder = "https://")
                 }
-                LrField("API 키", hint = "PC 의 start-server.bat 에 넣은 키와 같아야 합니다") {
-                    LrTextField(form.apiKey, { v -> viewModel.edit { it.copy(apiKey = v) } })
+                LrWideButton("주소 저장하고 연결 확인", onClick = { viewModel.saveServer() }, icon = LrIcons.Confirm)
+
+                val signedIn = account
+                if (signedIn == null) {
+                    LrWideButton(
+                        "Google 계정으로 로그인",
+                        onClick = { viewModel.signIn(context) },
+                        filled = true,
+                        icon = LrIcons.User,
+                    )
+                    Text(
+                        "로그인하면 기록이 서버의 내 계정에 저장됩니다. 폰을 바꿔도 같은 계정으로 로그인하면 이어집니다.",
+                        style = LrTheme.type.caption,
+                        color = colors.textSecondary,
+                    )
+                } else {
+                    Text(
+                        "${signedIn.displayName.ifBlank { "로그인됨" }} · ${signedIn.email}",
+                        style = LrTheme.type.bodyStrong,
+                        color = colors.textPrimary,
+                    )
+                    LrWideButton("지금 동기화", onClick = { viewModel.syncNow() }, icon = LrIcons.Sync)
+                    LrWideButton("서버 기록으로 덮어쓰기 (복원)", onClick = { confirmRestore = true })
+                    LrWideButton("로그아웃", onClick = { viewModel.signOut() }, icon = LrIcons.Close)
                 }
-                LrWideButton("저장하고 연결 확인", onClick = { viewModel.saveServer() }, filled = true, icon = LrIcons.Confirm)
-                LrWideButton("지금 동기화", onClick = { viewModel.syncNow() }, icon = LrIcons.Sync)
-                LrWideButton("서버에서 복원 (새 폰·재설치)", onClick = { confirmRestore = true })
 
                 val last = status.lastSyncAt?.let {
                     SimpleDateFormat("M월 d일 HH:mm", Locale.KOREA).format(Date(it))
