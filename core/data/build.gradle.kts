@@ -1,3 +1,5 @@
+import java.util.Properties
+
 // 저장(Room)과 동기화(서버). 화면 모듈은 여기 있는 Repository 인터페이스만 본다.
 plugins {
     alias(libs.plugins.lifereset.android.library)
@@ -10,7 +12,7 @@ plugins {
  *   habitquest.serverUrl=https://내PC.tailnet이름.ts.net
  * 없으면 빈 값 → 앱의 시작 화면에서 직접 입력.
  */
-val localProperties = java.util.Properties().apply {
+val localProperties = Properties().apply {
     rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
 }
 val defaultServerUrl: String = (

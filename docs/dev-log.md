@@ -74,7 +74,16 @@ Box 안에서는 바깥 Row·Column 스코프가 둘 다 암시적 수신자로 
 
 ---
 
-## 7. 설계·구현 중 고친 것들
+## 7. Gradle 스크립트: Unresolved reference: util
+**증상** `core/data/build.gradle.kts` 에서 `java.util.Properties()` → `Unresolved reference: util`, `load`
+**원인** Gradle Kotlin DSL 안에서 `java` 는 패키지가 아니라 프로젝트의 `java { }` 설정(확장)으로 먼저 해석된다.
+그래서 `java.util` 을 그 설정 객체의 속성으로 찾다가 실패했다.
+**해결** 스크립트 맨 위에 `import java.util.Properties` 를 두고 `Properties()` 로 사용
+**배운 점** build.gradle.kts 에서 JDK 클래스를 쓸 때는 전체 경로 대신 import. (`java`, `kotlin`, `android` 같은 이름은 DSL 이 먼저 가져간다)
+
+---
+
+## 8. 설계·구현 중 고친 것들
 | 버그 | 원인 | 해결 |
 |---|---|---|
 | 운동이 적은 주에 주간 보스 HP 가 맞지 않음 | HP 를 항상 "운동 횟수 − 1" 로 계산 | 운동 3회 이상일 때만 −1 (여유 1회), 그보다 적으면 횟수 그대로 |
