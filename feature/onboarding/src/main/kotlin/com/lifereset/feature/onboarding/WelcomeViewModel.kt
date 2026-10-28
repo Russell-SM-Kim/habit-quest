@@ -60,8 +60,6 @@ class WelcomeViewModel(
         viewModelScope.launch { accounts.continueWithoutAccount() }
     }
 
-    fun toggleServerField() = _ui.update { it.copy(showServerField = !it.showServerField) }
-
     companion object {
         fun factory(settings: SettingsRepository, accounts: AccountManager): ViewModelProvider.Factory =
             viewModelFactory { initializer { WelcomeViewModel(settings, accounts) } }

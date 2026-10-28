@@ -52,7 +52,6 @@ fun WelcomeRoute(
         onSignIn = { viewModel.signIn(context) },
         onSkip = viewModel::continueWithoutAccount,
         onServerUrlChange = viewModel::editServerUrl,
-        onToggleServerField = viewModel::toggleServerField,
     )
 }
 
@@ -60,6 +59,7 @@ fun WelcomeRoute(
  * 처음 켰을 때 한 번만 나오는 화면.
  *  - Google 계정으로 시작하기 → 로그인 + 서버 기록과 합치기 → 바로 오늘 화면
  *  - 로그인 없이 시작하기 → 이 폰에만 저장 (설정에서 언제든 로그인 가능)
+ * 서버 주소는 앱에 들어 있으면 보이지 않는다. 없을 때만 입력칸이 나온다.
  */
 @Composable
 fun WelcomeScreen(
@@ -67,7 +67,6 @@ fun WelcomeScreen(
     onSignIn: () -> Unit,
     onSkip: () -> Unit,
     onServerUrlChange: (String) -> Unit,
-    onToggleServerField: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = LrTheme.colors
@@ -127,9 +126,6 @@ fun WelcomeScreen(
 
         Spacer(Modifier.height(20.dp))
         SkyLink("로그인 없이 시작하기 (이 폰에만 저장)", onSkip)
-        if (!ui.showServerField) {
-            SkyLink("서버 주소 바꾸기", onToggleServerField, Modifier.padding(top = 12.dp))
-        }
     }
 }
 
