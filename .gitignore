@@ -1,0 +1,10 @@
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.DS_Store
+captures/
+.kotlin/
+# 서버 비밀값이 들어간 실행 스크립트 복사본
+server/scripts/windows/*.local.bat
