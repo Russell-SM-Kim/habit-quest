@@ -7,8 +7,11 @@ REM ============================================================
 chcp 65001 > nul
 cd /d %~dp0
 
-REM 앱의 설정 화면에도 같은 키를 넣는다. 16자 이상 아무 문자열.
-set LIFE_RESET_API_KEY=여기에-긴-비밀키를-넣으세요
+REM Google 로그인: Google Cloud 콘솔에서 만든 "웹 애플리케이션" 클라이언트 ID (docs/google-login-setup.md)
+set LIFE_RESET_GOOGLE_CLIENT_ID=여기에-숫자-xxxx.apps.googleusercontent.com
+
+REM 로그인을 허용할 Gmail (쉼표로 여러 개). 비우면 아무 Google 계정이나 로그인 가능.
+set LIFE_RESET_ALLOWED_EMAILS=본인@gmail.com
 
 REM PostgreSQL 접속 정보 (docs/server-setup.md 의 3단계에서 만든 값)
 set LIFE_RESET_DB_URL=jdbc:postgresql://localhost:5432/lifereset

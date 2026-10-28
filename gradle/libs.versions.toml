@@ -28,6 +28,11 @@ exposed = "0.57.0"
 postgres = "42.7.4"
 hikari = "6.2.1"
 logback = "1.5.12"
+googleApiClient = "2.7.0"
+
+# Google 로그인 (앱)
+credentials = "1.3.0"
+googleId = "1.1.1"
 
 [libraries]
 # Build logic (convention plugins)
@@ -79,6 +84,12 @@ exposed-jdbc = { group = "org.jetbrains.exposed", name = "exposed-jdbc", version
 postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "postgres" }
 hikari = { group = "com.zaxxer", name = "HikariCP", version.ref = "hikari" }
 logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
+google-api-client = { group = "com.google.api-client", name = "google-api-client", version.ref = "googleApiClient" }
+
+# Google 로그인 (앱)
+androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
+androidx-credentials-play-services = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentials" }
+googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleId" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

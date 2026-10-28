@@ -5,6 +5,7 @@ import com.lifereset.core.data.db.LifeResetDatabase
 import com.lifereset.core.data.db.SettingEntity
 import com.lifereset.core.data.db.toDto
 import com.lifereset.core.data.db.toEntity
+import com.lifereset.core.data.repository.Account
 import com.lifereset.core.data.repository.ServerConfig
 import com.lifereset.core.data.repository.SettingKeys
 import com.lifereset.core.data.repository.SettingsRepository
@@ -18,6 +19,7 @@ import kotlinx.coroutines.sync.withLock
 
 sealed interface SyncResult {
     data class Success(val pushed: Int, val pulled: Int) : SyncResult
+    /** 서버 주소가 없거나 로그인 전 */
     data object NotConfigured : SyncResult
     data class Failure(val message: String) : SyncResult
 }
@@ -43,7 +45,7 @@ class SyncManager internal constructor(
             val pushed = pushDirty(config)
             val pulled = pullSince(config, settings.lastPull())
             SyncResult.Success(pushed, pulled)
-        }.getOrElse { SyncResult.Failure(it.message ?: "알 수 없는 오류") }
+        }.getOrElse { failure(it) }
 
         settings.setSyncStatus(
             when (result) {
@@ -64,13 +66,64 @@ class SyncManager internal constructor(
             val pulled = merge(response, force = true)
             settings.setLastPull(response.serverTime)
             SyncResult.Success(0, pulled)
-        }.getOrElse { SyncResult.Failure(it.message ?: "알 수 없는 오류") }
+        }.getOrElse { failure(it) }
     }
 
-    suspend fun testConnection(): Result<String> = runCatching {
-        val config = settings.serverConfig() ?: error("서버 주소와 키를 먼저 입력하세요")
-        val health = api.health(config)
-        "연결됨 (서버 v${health.version})"
+    /** 서버 주소가 맞는지 확인하고, 로그인에 쓸 Google 클라이언트 ID 를 받아온다. */
+    suspend fun checkServer(baseUrl: String): Result<ServerInfo> = runCatching {
+        val health = api.health(baseUrl.trim().trimEnd('/'))
+        ServerInfo(
+            version = health.version,
+            googleClientId = health.googleClientId ?: error("서버에 Google 클라이언트 ID 가 설정되지 않았습니다"),
+        )
+    }
+
+    /**
+     * Google ID 토큰으로 서버에 로그인하고, 이 폰의 기록과 서버의 기록을 합친다.
+     *  - 서버에 이미 기록이 있으면(다른 폰에서 쓰던 계정) 받아와서 합친다 (최신 수정이 이김)
+     *  - 게임 시작일은 둘 중 더 이른 날을 쓴다 (66일 진행이 짧아지지 않게)
+     *  - 이 폰의 기록은 전부 새 계정으로 다시 올린다
+     */
+    suspend fun signIn(baseUrl: String, idToken: String): Result<Account> = runCatching {
+        val url = baseUrl.trim().trimEnd('/')
+        val auth = api.signInWithGoogle(url, idToken)
+        val account = Account(auth.email, auth.displayName)
+        settings.setServerUrl(url)
+        settings.setSession(auth.sessionToken, account)
+
+        mutex.withLock {
+            val config = ServerConfig(url, auth.sessionToken)
+            val localStart = settingDao.get(SettingKeys.GAME_START) // 합치기 전에 기억
+            val remote = api.pull(config, since = 0L)
+            merge(remote)
+            remote.settings?.let { adoptEarlierGameStart(it, localStart) }
+            questDao.markAllDirty()
+            completionDao.markAllDirty()
+            settings.setLastPull(remote.serverTime)
+        }
+        sync()
+        account
+    }
+
+    /** 로그아웃: 서버 세션을 지우고 폰의 토큰을 지운다. 폰의 기록은 그대로 남는다. */
+    suspend fun signOut() {
+        settings.serverConfig()?.let { config -> runCatching { api.signOut(config) } }
+        settings.clearSession()
+        settings.setSyncStatus(SyncStatus(time.nowMillis(), true, "로그아웃했습니다"))
+    }
+
+    private suspend fun failure(error: Throwable): SyncResult.Failure {
+        if (error is UnauthorizedException) settings.clearSession()
+        return SyncResult.Failure(error.message ?: "알 수 없는 오류")
+    }
+
+    private suspend fun adoptEarlierGameStart(remote: SettingsDto, local: SettingEntity?) {
+        if (local == null || remote.gameStart <= local.value) {
+            settingDao.upsert(SettingEntity(SettingKeys.GAME_START, remote.gameStart, time.nowMillis(), dirty = false))
+        } else {
+            // 이 폰의 시작일이 더 이르다 → 서버로 올린다
+            settingDao.upsert(local.copy(updatedAt = time.nowMillis(), dirty = true))
+        }
     }
 
     private suspend fun pushDirty(config: ServerConfig): Int {
@@ -131,3 +184,6 @@ class SyncManager internal constructor(
         settingDao.upsert(SettingEntity(SettingKeys.GAME_START, remote.gameStart, remote.updatedAt, dirty = false))
     }
 }
+
+/** 서버 연결 확인 결과. */
+data class ServerInfo(val version: String, val googleClientId: String)

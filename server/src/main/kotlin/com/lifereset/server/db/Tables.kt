@@ -3,11 +3,34 @@ package com.lifereset.server.db
 import org.jetbrains.exposed.sql.Table
 
 /*
- * 테이블은 앱의 Room 테이블과 같은 모양이다. 레벨·스탯은 저장하지 않는다 (기록에서 계산).
+ * 사용자(Google 계정)마다 기록이 따로 저장된다. 모든 기록 테이블은 user_id 를 가진다.
+ * 레벨·스탯은 저장하지 않는다 (기록에서 계산).
  * server_updated_at: 서버가 이 행을 마지막으로 받은 시각. pull 커서로 쓴다.
  */
 
+/** Google 계정. id = Google 의 고유 번호(sub), 이메일이 바뀌어도 그대로다. */
+object UsersTable : Table("users") {
+    val id = varchar("id", 64)
+    val email = varchar("email", 320).index()
+    val displayName = varchar("display_name", 200).default("")
+    val createdAt = long("created_at")
+    val lastLoginAt = long("last_login_at")
+
+    override val primaryKey = PrimaryKey(id)
+}
+
+/** 로그인 세션. 토큰 원문은 저장하지 않고 SHA-256 해시만 저장한다 (DB 가 새도 토큰을 못 쓰게). */
+object SessionsTable : Table("sessions") {
+    val tokenHash = varchar("token_hash", 64)
+    val userId = varchar("user_id", 64).references(UsersTable.id).index()
+    val createdAt = long("created_at")
+    val lastUsedAt = long("last_used_at")
+
+    override val primaryKey = PrimaryKey(tokenHash)
+}
+
 object QuestsTable : Table("quests") {
+    val userId = varchar("user_id", 64).references(UsersTable.id)
     val id = varchar("id", 64)
     val title = varchar("title", 200)
     val difficulty = varchar("difficulty", 16)
@@ -26,10 +49,11 @@ object QuestsTable : Table("quests") {
     val updatedAt = long("updated_at")
     val serverUpdatedAt = long("server_updated_at").index()
 
-    override val primaryKey = PrimaryKey(id)
+    override val primaryKey = PrimaryKey(userId, id)
 }
 
 object CompletionsTable : Table("completions") {
+    val userId = varchar("user_id", 64).references(UsersTable.id)
     val id = varchar("id", 64)
     val questId = varchar("quest_id", 64).index()
     val questTitle = varchar("quest_title", 200)
@@ -46,15 +70,16 @@ object CompletionsTable : Table("completions") {
     val voided = bool("voided").default(false)
     val serverUpdatedAt = long("server_updated_at").index()
 
-    override val primaryKey = PrimaryKey(id)
+    override val primaryKey = PrimaryKey(userId, id)
 }
 
-/** 키-값 설정 (게임 시작일 등). */
+/** 사용자별 키-값 설정 (게임 시작일 등). */
 object SettingsTable : Table("settings") {
+    val userId = varchar("user_id", 64).references(UsersTable.id)
     val key = varchar("key", 64)
     val value = varchar("value", 500)
     val updatedAt = long("updated_at")
     val serverUpdatedAt = long("server_updated_at")
 
-    override val primaryKey = PrimaryKey(key)
+    override val primaryKey = PrimaryKey(userId, key)
 }
