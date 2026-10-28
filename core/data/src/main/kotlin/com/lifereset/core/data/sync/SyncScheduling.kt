@@ -21,6 +21,7 @@ fun interface SyncRequester {
 
 /**
  * WorkManager 로 동기화를 예약한다.
+ * - 앱을 열 때 바로 1회 ([syncNow])
  * - 변경이 생기면 5초 뒤 1회 (연달아 바뀌면 마지막 것만 실행)
  * - 그와 별개로 15분마다 주기 실행 (안드로이드가 허용하는 최소 간격)
  * 네트워크가 없으면 WorkManager 가 연결될 때까지 미뤄준다.
@@ -31,9 +32,14 @@ class WorkManagerSyncScheduler(private val context: Context) : SyncRequester {
         .setRequiredNetworkType(NetworkType.CONNECTED)
         .build()
 
-    override fun requestSync() {
+    override fun requestSync() = enqueue(delaySeconds = 5)
+
+    /** 앱을 열었을 때 등: 기다리지 않고 바로 (네트워크가 없으면 연결될 때까지 미뤄짐). */
+    fun syncNow() = enqueue(delaySeconds = 0)
+
+    private fun enqueue(delaySeconds: Long) {
         val request = OneTimeWorkRequestBuilder<SyncWorker>()
-            .setInitialDelay(5, TimeUnit.SECONDS)
+            .setInitialDelay(delaySeconds, TimeUnit.SECONDS)
             .setConstraints(networkConstraint)
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
             .build()

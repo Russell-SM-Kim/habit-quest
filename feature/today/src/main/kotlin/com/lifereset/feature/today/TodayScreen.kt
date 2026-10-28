@@ -87,7 +87,7 @@ fun TodayScreen(
             .padding(horizontal = LrTheme.Dimens.screenPadding, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        PlayerHeader(player = player, name = ui.playerName)
+        PlayerHeader(player = player, name = ui.playerName, syncLabel = ui.syncLabel)
         if (player.today.recoveryAvailable) {
             RecoveryPanel(onComplete = onRecovery)
         }

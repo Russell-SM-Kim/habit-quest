@@ -27,6 +27,7 @@ dependencies {
     implementation(project(":core:protocol"))
     implementation(project(":core:data"))
     implementation(project(":core:designsystem"))
+    implementation(project(":feature:onboarding"))
     implementation(project(":feature:today"))
     implementation(project(":feature:status"))
     implementation(project(":feature:record"))
@@ -37,6 +38,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.process) // 앱을 열 때 동기화
     implementation(libs.androidx.navigation.compose)
     implementation(libs.play.services.wearable)
     implementation(libs.kotlinx.coroutines.play.services)

@@ -77,6 +77,7 @@ ktor-server-netty = { group = "io.ktor", name = "ktor-server-netty", version.ref
 ktor-server-content-negotiation = { group = "io.ktor", name = "ktor-server-content-negotiation", version.ref = "ktor" }
 ktor-server-status-pages = { group = "io.ktor", name = "ktor-server-status-pages", version.ref = "ktor" }
 ktor-server-call-logging = { group = "io.ktor", name = "ktor-server-call-logging", version.ref = "ktor" }
+ktor-server-rate-limit = { group = "io.ktor", name = "ktor-server-rate-limit", version.ref = "ktor" }
 ktor-server-test-host = { group = "io.ktor", name = "ktor-server-test-host", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 exposed-core = { group = "org.jetbrains.exposed", name = "exposed-core", version.ref = "exposed" }
