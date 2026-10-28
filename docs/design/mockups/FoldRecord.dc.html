@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>폴드 펼침 · 기록과 로그</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Semi+Condensed:wght@500;600;700&amp;family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3E4146}a:hover{color:#1A1A1A}
+</style>
+</helmet>
+<div style="--a: {{accent}}; position: relative; width: 884px; height: 1000px; box-sizing: border-box; background: #6F8AA3; color: #3E4146; font-family: 'Noto Sans KR', sans-serif; overflow: hidden">
+
+<div aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden">
+<div style="position: absolute; left: -80px; top: -80px; width: 1040px; height: 400px; background: #4E6A86; filter: blur(60px)"></div>
+<div style="position: absolute; left: 420px; top: 140px; width: 460px; height: 300px; border-radius: 230px; background: #F2E6D0; filter: blur(70px); opacity: 0.85"></div>
+<div style="position: absolute; left: -60px; top: 420px; width: 460px; height: 260px; border-radius: 230px; background: #DCE3EA; filter: blur(55px); opacity: 0.9"></div>
+<div style="position: absolute; left: 380px; top: 600px; width: 560px; height: 280px; border-radius: 280px; background: #C9D3DD; filter: blur(60px); opacity: 0.9"></div>
+<div style="position: absolute; left: -60px; top: 820px; width: 1000px; height: 260px; background: #56677A; filter: blur(60px)"></div>
+</div>
+
+<div style="position: relative; height: 100%; display: flex">
+
+<nav aria-label="주요 메뉴" style="width: 104px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 18px; padding-top: 120px">
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="4">
+<a href="{{n.href}}" style="{{n.link}}">
+<span style="{{n.ring}}"><span style="{{n.disc}}">
+<sc-if value="{{n.home}}" hint-placeholder-val="{{true}}"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5 2 10.5V21a1 1 0 0 0 1 1h6v-7h6v7h6a1 1 0 0 0 1-1V10.5z"></path></svg></sc-if>
+<sc-if value="{{n.user}}" hint-placeholder-val="{{false}}"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4.5"></circle><path d="M3.5 21a8.5 8.5 0 0 1 17 0z"></path></svg></sc-if>
+<sc-if value="{{n.cal}}" hint-placeholder-val="{{false}}"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2h2v3H7zM15 2h2v3h-2z"></path><path d="M4 5h16a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1 6v9h14v-9z"></path></svg></sc-if>
+<sc-if value="{{n.cog}}" hint-placeholder-val="{{false}}"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10.3 2h3.4l.5 2.6 1.9.8 2.2-1.5 2.4 2.4-1.5 2.2.8 1.9 2.6.5v3.4l-2.6.5-.8 1.9 1.5 2.2-2.4 2.4-2.2-1.5-1.9.8-.5 2.6h-3.4l-.5-2.6-1.9-.8-2.2 1.5-2.4-2.4 1.5-2.2-.8-1.9L2 13.7v-3.4l2.6-.5.8-1.9-1.5-2.2 2.4-2.4 2.2 1.5 1.9-.8zM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"></path></svg></sc-if>
+</span></span>
+<span>{{n.label}}</span>
+</a>
+</sc-for>
+</nav>
+
+<div style="flex: 1; min-width: 0; padding: 32px 24px 24px 4px; display: flex; flex-direction: column; gap: 14px">
+<header style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: flex-end">
+<h1 style="margin: 0; font-family: 'Saira Semi Condensed', sans-serif; font-size: 48px; font-weight: 700; line-height: 1; color: #FFFFFF; text-shadow: 0 2px 10px rgba(30, 45, 60, 0.45)">Season 1</h1>
+<span style="font-size: 15px; font-weight: 500; color: #FFFFFF; text-shadow: 0 1px 6px rgba(30, 45, 60, 0.5)">10.05 시작 · 43일 남음 · 끝나면 시즌 2 자동 시작</span>
+</div>
+<div aria-hidden="true" style="height: 8px; background: rgba(255, 255, 255, 0.35); border: 1px solid rgba(255, 255, 255, 0.85)"><div style="width: 35%; height: 100%; background: rgba(255, 255, 255, 0.95)"></div></div>
+</header>
+
+<div style="flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 14px; align-items: start">
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+<section aria-labelledby="gt" style="background: rgba(246, 247, 249, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.9); box-shadow: 0 6px 20px rgba(20, 30, 45, 0.22); clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px)">
+<div style="padding: 12px 16px 0; text-align: center">
+<h2 id="gt" style="margin: 0; padding-bottom: 8px; border-bottom: 1.5px solid #8C9097; font-family: 'Saira Semi Condensed', sans-serif; font-size: 22px; font-weight: 600; color: #4A4D53">Record</h2>
+</div>
+<div style="padding: 10px 16px 0">
+<span style="font-family: 'Saira Semi Condensed', sans-serif; font-size: 34px; font-weight: 700">23<span style="font-size: 17px; font-weight: 500; color: #6B6F76"> / 66 days</span></span>
+</div>
+<div role="img" aria-label="66일 중 22일 달성, 오늘은 23일째" style="padding: 10px 16px 14px; display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 5px">
+<sc-for list="{{cells}}" as="c" hint-placeholder-count="66"><div style="{{c.style}}"></div></sc-for>
+</div>
+</section>
+
+<section aria-labelledby="ms" style="background: rgba(246, 247, 249, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.9); padding: 12px 16px 14px">
+<h2 id="ms" style="margin: 0 0 12px; font-size: 14px; font-weight: 700">마일스톤</h2>
+<div style="display: flex; justify-content: space-between">
+<sc-for list="{{milestones}}" as="m" hint-placeholder-count="4">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 6px; width: 80px">
+<div style="{{m.disc}}">{{m.day}}</div>
+<span style="font-size: 11px; color: #4A4D53">{{m.label}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{totals}}" as="t" hint-placeholder-count="3">
+<div style="background: rgba(222, 224, 228, 0.88); border: 1px solid rgba(255, 255, 255, 0.95); padding: 9px 12px; display: flex; flex-direction: column">
+<span style="font-size: 11px; color: #5A5E65">{{t.k}}</span>
+<span style="font-family: 'Saira Semi Condensed', sans-serif; font-size: 22px; font-weight: 700">{{t.v}}</span>
+</div>
+</sc-for>
+</div>
+
+<section aria-labelledby="lg" style="background: rgba(246, 247, 249, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.9); box-shadow: 0 6px 20px rgba(20, 30, 45, 0.22); clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px)">
+<div style="padding: 12px 16px 0; text-align: center">
+<h2 id="lg" style="margin: 0; padding-bottom: 8px; border-bottom: 1.5px solid #8C9097; font-family: 'Saira Semi Condensed', sans-serif; font-size: 22px; font-weight: 600; color: #4A4D53">Level Log</h2>
+</div>
+<ul style="list-style: none; margin: 0; padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{log}}" as="l" hint-placeholder-count="6">
+<li style="display: flex; align-items: center; gap: 12px; padding: 0 12px 0 8px; min-height: 46px; background: rgba(222, 224, 228, 0.88); border: 1px solid rgba(255, 255, 255, 0.95)">
+<span style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-family: 'Saira Semi Condensed', sans-serif; font-size: 13px; font-weight: 700; background: #3E4146; color: #FFFFFF; box-shadow: 0 0 0 2px rgba(255,255,255,0.9)">{{l.lv}}</span>
+<div style="flex: 1; display: flex; flex-direction: column; min-width: 0">
+<span style="font-family: 'Saira Semi Condensed', sans-serif; font-size: 15px; font-weight: 600">{{l.gains}}</span>
+<span style="font-size: 11px; color: #6B6F76">{{l.note}}</span>
+</div>
+<span style="font-family: 'Saira Semi Condensed', sans-serif; font-size: 14px; font-weight: 600; color: #5A5E65">{{l.date}}</span>
+</li>
+</sc-for>
+</ul>
+</section>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F0B400","options":["#F0B400","#4DA3E8","#7DC21E","#E04848"]},"$preview":{"width":884,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+var today = 23;
+var level = [3, 2, 3, 3, 1, 3, 2, 3, 3, 3, 2, 3, 1, 3, 3, 2, 3, 3, 3, 2, 3, 3];
+var fills = ['#DADDE1', '#B9BDC3', '#7A7E85', '#3E4146'];
+var cells = [];
+for (var d = 1; d <= 66; d++) {
+  var s = 'aspect-ratio: 1 / 1; box-sizing: border-box; ';
+  if (d < today) s += 'background: ' + fills[level[d - 1]];
+  else if (d === today) s += 'background: #FFFFFF; border: 3px solid var(--a)';
+  else s += 'background: rgba(218, 221, 225, 0.7); border: 1px solid rgba(255,255,255,0.9)';
+  cells.push({ style: s });
+}
+var milestones = [[7, '1주 완주'], [21, '습관 형성'], [30, '한 달'], [66, '시즌 클리어']].map(function (m) {
+  var done = m[0] < today;
+  return {
+    day: m[0], label: m[1],
+    disc: "width: 50px; height: 50px; box-sizing: border-box; border-radius: 25px; display: flex; align-items: center; justify-content: center; font-family: 'Saira Semi Condensed', sans-serif; font-size: 20px; font-weight: 700; box-shadow: 0 0 0 2px rgba(255,255,255,0.95); " + (done ? 'background: #3E4146; color: #FFFFFF' : 'background: rgba(222, 224, 228, 0.9); color: #7A7E85')
+  };
+});
+var totals = [{ k: '최장 연속', v: '23일' }, { k: '완료 퀘스트', v: '112' }, { k: '보스 처치', v: '3' }];
+var log = [
+  { lv: '7', gains: 'END +4 · WIL +3 · STR +2', note: '클래스 변경: 견습생 → 러너', date: '10.26' },
+  { lv: '6', gains: 'WIL +3 · INT +2 · END +2', note: '', date: '10.22' },
+  { lv: '5', gains: 'END +3 · AGI +2 · WIL +2', note: '', date: '10.18' },
+  { lv: '4', gains: 'WIL +3 · VIT +2 · STR +2', note: '', date: '10.14' },
+  { lv: '3', gains: 'STR +3 · WIL +2 · VIT +2', note: '', date: '10.10' },
+  { lv: '2', gains: 'WIL +3 · VIT +2 · INT +2', note: '', date: '10.07' }
+];
+var items = [['FoldToday.dc.html', '오늘', 'home'], ['Status.dc.html', '상태', 'user'], ['FoldRecord.dc.html', '기록', 'cal'], ['#', '설정', 'cog']];
+var nav = items.map(function (it, i) {
+  var on = i === 2;
+  return {
+    href: it[0], label: it[1], home: it[2] === 'home', user: it[2] === 'user', cal: it[2] === 'cal', cog: it[2] === 'cog',
+    link: 'display: flex; flex-direction: column; align-items: center; gap: 5px; text-decoration: none; font-size: 12px; font-weight: ' + (on ? 700 : 500) + '; color: #FFFFFF; text-shadow: 0 1px 4px rgba(20,30,45,0.6)',
+    ring: 'width: 66px; height: 66px; box-sizing: border-box; border-radius: 33px; border: 2px solid ' + (on ? 'var(--a)' : 'rgba(255, 255, 255, 0.85)') + '; display: flex; align-items: center; justify-content: center' + (on ? '; box-shadow: 0 0 12px var(--a)' : ''),
+    disc: 'width: 56px; height: 56px; border-radius: 28px; display: flex; align-items: center; justify-content: center; ' + (on ? 'background: var(--a); color: #FFFFFF' : 'background: rgba(228, 229, 231, 0.88); color: #6B6F76')
+  };
+});
+return { accent: this.props.accent ?? '#F0B400', cells: cells, milestones: milestones, totals: totals, log: log, nav: nav };
+}
+}
+</script>
+</body>
+</html>

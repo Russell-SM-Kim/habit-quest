@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>퀘스트 등록</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Semi+Condensed:wght@500;600;700&amp;family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3E4146}a:hover{color:#1A1A1A}
+</style>
+</helmet>
+<div style="position: relative; width: 412px; height: 915px; box-sizing: border-box; background: #6F8AA3; color: #3E4146; font-family: 'Noto Sans KR', sans-serif; overflow: hidden">
+
+<div aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden">
+<div style="position: absolute; left: -60px; top: -60px; width: 540px; height: 360px; background: #4E6A86; filter: blur(50px)"></div>
+<div style="position: absolute; left: 180px; top: 160px; width: 300px; height: 220px; border-radius: 150px; background: #F2E6D0; filter: blur(55px); opacity: 0.85"></div>
+<div style="position: absolute; left: -80px; top: 380px; width: 320px; height: 200px; border-radius: 160px; background: #DCE3EA; filter: blur(45px); opacity: 0.9"></div>
+<div style="position: absolute; left: 160px; top: 560px; width: 340px; height: 220px; border-radius: 170px; background: #C9D3DD; filter: blur(50px); opacity: 0.9"></div>
+<div style="position: absolute; left: -40px; top: 740px; width: 520px; height: 260px; background: #56677A; filter: blur(50px)"></div>
+</div>
+
+<div style="position: relative; height: 100%; padding: 30px 16px 20px; box-sizing: border-box; display: flex; flex-direction: column">
+<form style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: rgba(248, 248, 249, 0.86); backdrop-filter: blur(10px); border: 1px solid #FFFFFF; box-shadow: 0 8px 30px rgba(20, 30, 45, 0.3); clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px)">
+<div style="padding: 16px 20px 0; text-align: center">
+<h1 style="margin: 0; padding-bottom: 8px; border-bottom: 1.5px solid #8C9097; font-family: 'Saira Semi Condensed', sans-serif; font-size: 24px; font-weight: 700; color: #3E4146">New Quest</h1>
+</div>
+
+<div style="flex: 1; min-height: 0; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="qn" style="font-size: 12px; font-weight: 700; color: #5A5E65">퀘스트 이름</label>
+<input id="qn" type="text" value="독서" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #FFFFFF; background: rgba(222, 224, 228, 0.9); font-family: 'Noto Sans KR', sans-serif; font-size: 15px; color: #3E4146">
+</div>
+
+<div style="display: flex; gap: 8px">
+<div style="width: 96px; display: flex; flex-direction: column; gap: 6px">
+<label for="qa" style="font-size: 12px; font-weight: 700; color: #5A5E65">목표량</label>
+<input id="qa" type="text" value="20" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #FFFFFF; background: rgba(222, 224, 228, 0.9); font-family: 'Saira Semi Condensed', sans-serif; font-size: 18px; color: #3E4146">
+</div>
+<fieldset style="flex: 1; margin: 0; padding: 0; border: 0">
+<legend style="padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 700; color: #5A5E65">단위</legend>
+<div style="display: flex; gap: 3px">
+<sc-for list="{{units}}" as="u" hint-placeholder-count="4">
+<button type="button" aria-pressed="{{u.pressed}}" style="{{u.style}}">{{u.label}}</button>
+</sc-for>
+</div>
+</fieldset>
+</div>
+<p style="margin: -8px 0 0; font-size: 11px; color: #5A5E65">목표를 넘기면 넘긴 비율만큼 EXP 추가 (최대 2배)</p>
+
+<fieldset style="margin: 0; padding: 0; border: 0">
+<legend style="padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 700; color: #5A5E65">오르는 능력치 (최대 2개)</legend>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px">
+<sc-for list="{{stats}}" as="s" hint-placeholder-count="6">
+<button type="button" aria-pressed="{{s.pressed}}" style="{{s.row}}"><span style="{{s.icon}}">{{s.code}}</span><span>{{s.label}}</span></button>
+</sc-for>
+</div>
+</fieldset>
+
+<fieldset style="margin: 0; padding: 0; border: 0">
+<legend style="padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 700; color: #5A5E65">난이도</legend>
+<div style="display: flex; gap: 3px">
+<sc-for list="{{diffs}}" as="d" hint-placeholder-count="4">
+<button type="button" aria-pressed="{{d.pressed}}" style="{{d.style}}">{{d.label}}<span style="display: block; font-family: 'Saira Semi Condensed', sans-serif; font-size: 12px; font-weight: 600">{{d.xp}} EXP</span></button>
+</sc-for>
+</div>
+</fieldset>
+
+<fieldset style="margin: 0; padding: 0; border: 0">
+<legend style="padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 700; color: #5A5E65">반복 요일</legend>
+<div style="display: flex; justify-content: space-between">
+<sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+<button type="button" aria-pressed="{{d.pressed}}" style="{{d.style}}">{{d.label}}</button>
+</sc-for>
+</div>
+</fieldset>
+</div>
+
+<div style="display: flex; justify-content: center; gap: 72px; padding: 18px 20px 22px; background: rgba(201, 204, 209, 0.7); border-top: 1px solid #B4B8BE">
+<button type="submit" aria-label="등록" style="width: 58px; height: 58px; padding: 0; cursor: pointer; box-sizing: border-box; border-radius: 29px; background: #FFFFFF; border: 3px solid #2F80D8; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(47, 128, 216, 0.35)">
+<span style="width: 34px; height: 34px; border-radius: 17px; background: #2F80D8; display: flex; align-items: center; justify-content: center"><span style="width: 18px; height: 18px; box-sizing: border-box; border-radius: 9px; border: 3px solid #FFFFFF"></span></span>
+</button>
+<a href="Main.dc.html" aria-label="취소" style="width: 58px; height: 58px; box-sizing: border-box; border-radius: 29px; background: #FFFFFF; border: 3px solid #D84848; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(216, 72, 72, 0.35)">
+<span style="width: 34px; height: 34px; border-radius: 17px; background: #D84848; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6 6 18"></path></svg></span>
+</a>
+</div>
+</form>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":412,"height":915}}'>
+class Component extends DCLogic {
+renderVals() {
+var base = "font-family: 'Noto Sans KR', sans-serif; cursor: pointer; ";
+var seg = function (on) { return base + 'flex: 1; min-height: 44px; border: 1px solid #FFFFFF; font-size: 13px; ' + (on ? 'background: #3E4146; color: #FFFFFF; font-weight: 700' : 'background: rgba(222, 224, 228, 0.9); color: #4A4D53; font-weight: 500'); };
+var units = ['없음', '분', 'km', '회'].map(function (u) { var on = u === '분'; return { label: u, pressed: on ? 'true' : 'false', style: seg(on) }; });
+var stats = [['STR', '근력'], ['END', '지구력'], ['AGI', '민첩'], ['INT', '지능'], ['WIL', '정신력'], ['VIT', '활력']].map(function (s) {
+  var on = s[0] === 'INT';
+  return {
+    code: s[0], label: s[1], pressed: on ? 'true' : 'false',
+    row: base + 'display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 10px; border: 1px solid #FFFFFF; font-size: 14px; font-weight: 600; text-align: left; ' + (on ? 'background: #3E4146; color: #FFFFFF' : 'background: rgba(222, 224, 228, 0.9); color: #3E4146'),
+    icon: "width: 28px; height: 28px; flex-shrink: 0; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: 'Saira Semi Condensed', sans-serif; font-size: 11px; font-weight: 700; " + (on ? 'background: #FFFFFF; color: #3E4146' : 'background: #3E4146; color: #FFFFFF')
+  };
+});
+var diffs = [['쉬움', 10], ['보통', 20], ['어려움', 35], ['에픽', 60]].map(function (d) { var on = d[0] === '보통'; return { label: d[0], xp: d[1], pressed: on ? 'true' : 'false', style: seg(on) + '; padding: 6px 0' }; });
+var days = ['월', '화', '수', '목', '금', '토', '일'].map(function (d) {
+  return { label: d, pressed: 'true', style: base + 'width: 42px; height: 42px; padding: 0; border-radius: 21px; font-size: 14px; font-weight: 700; background: #3E4146; border: 2px solid #FFFFFF; color: #FFFFFF' };
+});
+return { units: units, stats: stats, diffs: diffs, days: days };
+}
+}
+</script>
+</body>
+</html>
