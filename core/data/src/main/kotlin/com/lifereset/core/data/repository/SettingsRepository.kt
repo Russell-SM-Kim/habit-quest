@@ -1,5 +1,6 @@
 package com.lifereset.core.data.repository
 
+import com.lifereset.core.data.BuildConfig
 import com.lifereset.core.data.db.SettingDao
 import com.lifereset.core.data.db.SettingEntity
 import com.lifereset.core.data.sync.SyncRequester
@@ -31,13 +32,20 @@ interface SettingsRepository {
     val playerName: Flow<String>
     suspend fun setPlayerName(name: String)
 
-    /** 서버 주소 (예: https://내PC.tailnet.ts.net). 로그인 전에도 저장된다. */
+    /**
+     * 서버 주소 (예: https://내PC.tailnet.ts.net). 로그인 전에도 저장된다.
+     * 직접 저장한 값이 없으면 앱에 내장된 기본 주소(local.properties 의 habitquest.serverUrl).
+     */
     val serverUrl: Flow<String>
     suspend fun serverUrl(): String
     suspend fun setServerUrl(url: String)
 
     /** 로그인한 계정. 로그아웃 상태면 null. */
     val account: Flow<Account?>
+
+    /** 시작 화면을 이미 지나갔는지 (로그인했거나 '로그인 없이 시작'을 눌렀음). */
+    val onboardingDone: Flow<Boolean>
+    suspend fun setOnboardingDone()
 
     /** 주소 + 세션 토큰. 로그인 전이면 null. 동기화는 이 값만 본다. */
     suspend fun serverConfig(): ServerConfig?
@@ -73,6 +81,7 @@ internal object SettingKeys {
     const val SYNC_MESSAGE = "sync_message"
     const val BACKGROUND_URI = "background_uri"
     const val SOUND_ENABLED = "sound_enabled"
+    const val ONBOARDING_DONE = "onboarding_done"
 }
 
 internal class LocalSettingsRepository(
@@ -97,9 +106,11 @@ internal class LocalSettingsRepository(
     override suspend fun setPlayerName(name: String) = put(SettingKeys.PLAYER_NAME, name.trim())
 
     override val serverUrl: Flow<String> =
-        dao.observe(SettingKeys.SERVER_URL).map { it?.value.orEmpty() }
+        dao.observe(SettingKeys.SERVER_URL).map { it?.value.orDefaultServer() }
 
-    override suspend fun serverUrl(): String = dao.get(SettingKeys.SERVER_URL)?.value.orEmpty()
+    override suspend fun serverUrl(): String = dao.get(SettingKeys.SERVER_URL)?.value.orDefaultServer()
+
+    private fun String?.orDefaultServer(): String = this?.takeIf { it.isNotBlank() } ?: BuildConfig.DEFAULT_SERVER_URL
 
     override suspend fun setServerUrl(url: String) = put(SettingKeys.SERVER_URL, url.trim().trimEnd('/'))
 
@@ -109,6 +120,13 @@ internal class LocalSettingsRepository(
     ) { email, name ->
         email?.value?.takeIf { it.isNotBlank() }?.let { Account(it, name?.value.orEmpty()) }
     }
+
+    override val onboardingDone: Flow<Boolean> = combine(
+        dao.observe(SettingKeys.ONBOARDING_DONE),
+        account,
+    ) { flag, account -> flag?.value == "true" || account != null }
+
+    override suspend fun setOnboardingDone() = put(SettingKeys.ONBOARDING_DONE, "true")
 
     override suspend fun serverConfig(): ServerConfig? {
         val url = serverUrl().takeIf { it.isNotBlank() } ?: return null
