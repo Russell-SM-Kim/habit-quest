@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.lifereset.core.data.auth.AccountManager
 import com.lifereset.core.data.repository.SettingsRepository
 import com.lifereset.core.data.sync.SyncManager
 import com.lifereset.core.designsystem.component.HeroHeader
@@ -42,9 +43,10 @@ import java.util.Locale
 fun SettingsRoute(
     settings: SettingsRepository,
     sync: SyncManager,
+    accounts: AccountManager,
     onOpenQuests: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.factory(settings, sync)),
+    viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.factory(settings, sync, accounts)),
 ) {
     val form by viewModel.form.collectAsStateWithLifecycle()
     val status by viewModel.syncStatus.collectAsStateWithLifecycle()

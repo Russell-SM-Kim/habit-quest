@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import android.content.Context
-import com.lifereset.core.data.auth.GoogleSignIn
-import com.lifereset.core.data.auth.GoogleSignInResult
+import com.lifereset.core.data.auth.AccountManager
+import com.lifereset.core.data.auth.SignInOutcome
 import com.lifereset.core.data.repository.Account
 import com.lifereset.core.data.repository.SettingsRepository
 import com.lifereset.core.data.repository.SyncStatus
@@ -31,6 +31,7 @@ data class SettingsForm(
 class SettingsViewModel(
     private val settings: SettingsRepository,
     private val sync: SyncManager,
+    private val accounts: AccountManager,
 ) : ViewModel() {
 
     private val _form = MutableStateFlow(SettingsForm())
@@ -90,26 +91,17 @@ class SettingsViewModel(
         sync.checkServer(url).fold({ "연결됨 (서버 v${it.version}) · 이제 Google 로 로그인하세요" }, { "연결 실패: ${it.message}" })
     }
 
-    /**
-     * Google 로그인. activityContext 는 화면의 LocalContext (계정 선택 창을 띄울 Activity).
-     * 1) 서버에서 클라이언트 ID 받기 → 2) 계정 선택 → 3) 서버 로그인 + 기록 합치기
-     */
+    /** Google 로그인. activityContext 는 화면의 LocalContext (계정 선택 창을 띄울 Activity). */
     fun signIn(activityContext: Context) = runBusy {
-        val url = _form.value.serverUrl.trim().trimEnd('/')
-        if (!url.startsWith("http")) return@runBusy "서버 주소를 먼저 입력하세요"
-        val server = sync.checkServer(url).getOrElse { return@runBusy "서버 연결 실패: ${it.message}" }
-        when (val google = GoogleSignIn.requestIdToken(activityContext, server.googleClientId)) {
-            GoogleSignInResult.Cancelled -> "로그인을 취소했습니다"
-            is GoogleSignInResult.Failure -> "Google 로그인 실패: ${google.message}"
-            is GoogleSignInResult.Success -> sync.signIn(url, google.idToken).fold(
-                { "${it.email} 로 로그인했습니다. 기록을 서버와 합쳤습니다" },
-                { "서버 로그인 실패: ${it.message}" },
-            )
+        when (val result = accounts.signInWithGoogle(activityContext, _form.value.serverUrl)) {
+            is SignInOutcome.Success -> "${result.account.email} 로 로그인했습니다. 기록을 서버와 합쳤습니다"
+            SignInOutcome.Cancelled -> "로그인을 취소했습니다"
+            is SignInOutcome.Failure -> result.message
         }
     }
 
     fun signOut() = runBusy {
-        sync.signOut()
+        accounts.signOut()
         "로그아웃했습니다. 이 폰의 기록은 그대로 남아 있습니다"
     }
 
@@ -133,7 +125,7 @@ class SettingsViewModel(
     }
 
     companion object {
-        fun factory(settings: SettingsRepository, sync: SyncManager): ViewModelProvider.Factory =
-            viewModelFactory { initializer { SettingsViewModel(settings, sync) } }
+        fun factory(settings: SettingsRepository, sync: SyncManager, accounts: AccountManager): ViewModelProvider.Factory =
+            viewModelFactory { initializer { SettingsViewModel(settings, sync, accounts) } }
     }
 }

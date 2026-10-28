@@ -1,6 +1,7 @@
 package com.lifereset.core.data
 
 import android.content.Context
+import com.lifereset.core.data.auth.AccountManager
 import com.lifereset.core.data.db.LifeResetDatabase
 import com.lifereset.core.data.repository.CompletionRepository
 import com.lifereset.core.data.repository.DefaultGameRepository
@@ -60,6 +61,9 @@ class DataContainer(context: Context) {
     )
 
     val syncManager = SyncManager(database, ServerApi(), settingsRepository, time)
+
+    /** 로그인·로그아웃 (시작 화면, 설정 화면) */
+    val accountManager = AccountManager(settingsRepository, syncManager)
 
     /** 앱 시작 시 1회: 첫 실행이면 시작일과 기본 퀘스트를 만들고, 주기 동기화를 건다. */
     fun initialize() {
