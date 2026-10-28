@@ -11,6 +11,7 @@ import com.lifereset.server.db.QuestsTable
 import com.lifereset.server.db.SettingsTable
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
 import org.jetbrains.exposed.sql.insert
@@ -20,7 +21,8 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 
 /**
- * 동기화 저장소. 규칙은 하나: 같은 id 면 updatedAt 이 큰 쪽이 이긴다.
+ * 동기화 저장소. 모든 읽기·쓰기는 로그인한 사용자(userId)의 행만 다룬다.
+ * 규칙은 하나: 같은 id 면 updatedAt 이 큰 쪽이 이긴다.
  * 같은 요청을 두 번 받아도 결과가 같다 (재시도 안전).
  */
 class SyncStore(
@@ -28,84 +30,88 @@ class SyncStore(
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
 
-    fun push(request: PushRequest): PushResponse = transaction(database) {
+    fun push(userId: String, request: PushRequest): PushResponse = transaction(database) {
         val now = clock()
-        val quests = request.quests.count { upsertQuest(it, now) }
-        val completions = request.completions.count { upsertCompletion(it, now) }
-        request.settings?.let { upsertSetting(GAME_START_KEY, it.gameStart, it.updatedAt, now) }
+        val quests = request.quests.count { upsertQuest(userId, it, now) }
+        val completions = request.completions.count { upsertCompletion(userId, it, now) }
+        request.settings?.let { upsertSetting(userId, GAME_START_KEY, it.gameStart, it.updatedAt, now) }
         PushResponse(acceptedQuests = quests, acceptedCompletions = completions, serverTime = now)
     }
 
     /** since 이후(같은 시각 포함)에 서버가 받은 행. 같은 행을 한 번 더 받아도 updatedAt 비교로 무해하다. */
-    fun pull(since: Long): PullResponse = transaction(database) {
+    fun pull(userId: String, since: Long): PullResponse = transaction(database) {
         val now = clock()
         PullResponse(
             quests = QuestsTable.selectAll()
-                .where { QuestsTable.serverUpdatedAt greaterEq since }
+                .where { (QuestsTable.userId eq userId) and (QuestsTable.serverUpdatedAt greaterEq since) }
                 .map { it.toQuestDto() },
             completions = CompletionsTable.selectAll()
-                .where { CompletionsTable.serverUpdatedAt greaterEq since }
+                .where { (CompletionsTable.userId eq userId) and (CompletionsTable.serverUpdatedAt greaterEq since) }
                 .map { it.toCompletionDto() },
-            settings = readSettings(),
+            settings = readSettings(userId),
             serverTime = now,
         )
     }
 
     /** 엔진 계산용 전체 데이터. */
-    fun snapshot(): Triple<List<QuestDto>, List<CompletionDto>, SettingsDto?> = transaction(database) {
+    fun snapshot(userId: String): Triple<List<QuestDto>, List<CompletionDto>, SettingsDto?> = transaction(database) {
         Triple(
-            QuestsTable.selectAll().map { it.toQuestDto() },
-            CompletionsTable.selectAll().map { it.toCompletionDto() },
-            readSettings(),
+            QuestsTable.selectAll().where { QuestsTable.userId eq userId }.map { it.toQuestDto() },
+            CompletionsTable.selectAll().where { CompletionsTable.userId eq userId }.map { it.toCompletionDto() },
+            readSettings(userId),
         )
     }
 
     // --- 쓰기 -------------------------------------------------------------
 
-    private fun upsertQuest(dto: QuestDto, now: Long): Boolean {
-        val existing = QuestsTable.selectAll().where { QuestsTable.id eq dto.id }
+    private fun upsertQuest(userId: String, dto: QuestDto, now: Long): Boolean {
+        val match = { (QuestsTable.userId eq userId) and (QuestsTable.id eq dto.id) }
+        val existing = QuestsTable.selectAll().where { match() }
             .singleOrNull()?.get(QuestsTable.updatedAt)
         return when {
             existing == null -> {
-                QuestsTable.insert { it.fillQuest(dto, now) }
+                QuestsTable.insert { it.fillQuest(userId, dto, now) }
                 true
             }
             dto.updatedAt > existing -> {
-                QuestsTable.update({ QuestsTable.id eq dto.id }) { it.fillQuest(dto, now) }
+                QuestsTable.update({ match() }) { it.fillQuest(userId, dto, now) }
                 true
             }
             else -> false
         }
     }
 
-    private fun upsertCompletion(dto: CompletionDto, now: Long): Boolean {
-        val existing = CompletionsTable.selectAll().where { CompletionsTable.id eq dto.id }
+    private fun upsertCompletion(userId: String, dto: CompletionDto, now: Long): Boolean {
+        val match = { (CompletionsTable.userId eq userId) and (CompletionsTable.id eq dto.id) }
+        val existing = CompletionsTable.selectAll().where { match() }
             .singleOrNull()?.get(CompletionsTable.updatedAt)
         return when {
             existing == null -> {
-                CompletionsTable.insert { it.fillCompletion(dto, now) }
+                CompletionsTable.insert { it.fillCompletion(userId, dto, now) }
                 true
             }
             dto.updatedAt > existing -> {
-                CompletionsTable.update({ CompletionsTable.id eq dto.id }) { it.fillCompletion(dto, now) }
+                CompletionsTable.update({ match() }) { it.fillCompletion(userId, dto, now) }
                 true
             }
             else -> false
         }
     }
 
-    private fun upsertSetting(key: String, value: String, updatedAt: Long, now: Long) {
-        val existing = SettingsTable.selectAll().where { SettingsTable.key eq key }
+    private fun upsertSetting(userId: String, key: String, value: String, updatedAt: Long, now: Long) {
+        val match = { (SettingsTable.userId eq userId) and (SettingsTable.key eq key) }
+        val existing = SettingsTable.selectAll().where { match() }
             .singleOrNull()?.get(SettingsTable.updatedAt)
         if (existing == null) {
             SettingsTable.insert {
+                it[SettingsTable.userId] = userId
                 it[SettingsTable.key] = key
                 it[SettingsTable.value] = value
                 it[SettingsTable.updatedAt] = updatedAt
                 it[SettingsTable.serverUpdatedAt] = now
             }
         } else if (updatedAt > existing) {
-            SettingsTable.update({ SettingsTable.key eq key }) {
+            SettingsTable.update({ match() }) {
                 it[SettingsTable.value] = value
                 it[SettingsTable.updatedAt] = updatedAt
                 it[SettingsTable.serverUpdatedAt] = now
@@ -113,12 +119,15 @@ class SyncStore(
         }
     }
 
-    private fun readSettings(): SettingsDto? =
-        SettingsTable.selectAll().where { SettingsTable.key eq GAME_START_KEY }.singleOrNull()?.let {
+    private fun readSettings(userId: String): SettingsDto? =
+        SettingsTable.selectAll()
+            .where { (SettingsTable.userId eq userId) and (SettingsTable.key eq GAME_START_KEY) }
+            .singleOrNull()?.let {
             SettingsDto(gameStart = it[SettingsTable.value], updatedAt = it[SettingsTable.updatedAt])
         }
 
-    private fun UpdateBuilder<*>.fillQuest(dto: QuestDto, now: Long) {
+    private fun UpdateBuilder<*>.fillQuest(userId: String, dto: QuestDto, now: Long) {
+        this[QuestsTable.userId] = userId
         this[QuestsTable.id] = dto.id
         this[QuestsTable.title] = dto.title
         this[QuestsTable.difficulty] = dto.difficulty
@@ -138,7 +147,8 @@ class SyncStore(
         this[QuestsTable.serverUpdatedAt] = now
     }
 
-    private fun UpdateBuilder<*>.fillCompletion(dto: CompletionDto, now: Long) {
+    private fun UpdateBuilder<*>.fillCompletion(userId: String, dto: CompletionDto, now: Long) {
+        this[CompletionsTable.userId] = userId
         this[CompletionsTable.id] = dto.id
         this[CompletionsTable.questId] = dto.questId
         this[CompletionsTable.questTitle] = dto.questTitle

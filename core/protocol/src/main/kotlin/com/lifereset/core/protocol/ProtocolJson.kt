@@ -9,5 +9,6 @@ val ProtocolJson: Json = Json {
     explicitNulls = false
 }
 
-/** 모든 요청에 붙이는 API 키 헤더 이름. */
-const val API_KEY_HEADER = "X-Api-Key"
+/** 로그인 후 모든 요청에 붙이는 헤더: "Authorization: Bearer <세션 토큰>" */
+const val AUTH_HEADER = "Authorization"
+const val BEARER_PREFIX = "Bearer "
