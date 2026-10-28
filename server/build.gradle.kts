@@ -26,6 +26,7 @@ dependencies {
     implementation(libs.ktor.server.content.negotiation)
     implementation(libs.ktor.server.status.pages)
     implementation(libs.ktor.server.call.logging)
+    implementation(libs.ktor.server.rate.limit) // 로그인 남용 방지
     implementation(libs.ktor.serialization.kotlinx.json)
 
     implementation(libs.exposed.core)
