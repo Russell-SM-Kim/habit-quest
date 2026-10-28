@@ -54,7 +54,17 @@ Box 안에서는 바깥 Row·Column 스코프가 둘 다 암시적 수신자로 
 
 ---
 
-## 5. 설계·구현 중 고친 것들
+## 5. 서버 실행: 'java' is not recognized
+**증상** `start-server.bat` 실행 → `'java' is not recognized as an internal or external command` 후 10초마다 재시도
+**원인** PC 에 있던 Java 는 Android Studio 안의 JBR 뿐이었고, 시스템 PATH 에 등록돼 있지 않았다.
+(Android Studio 는 자기 JDK 를 직접 지정해서 쓰기 때문에 IDE 에서는 문제가 드러나지 않음)
+**해결** `winget install EclipseAdoptium.Temurin.21.JDK` → 새 cmd 에서 `java -version` 확인 → bat 재실행
+**결과** `Responding at http://127.0.0.1:8080` → Tailscale serve → 폰에서 `/health`, `/sync/push`, `/sync/pull` 모두 200 OK
+**배운 점** 24시간 돌릴 서버는 IDE 에 딸린 런타임이 아니라 따로 설치한 LTS 런타임으로 돌린다 (IDE 업데이트에 끌려가지 않게).
+
+---
+
+## 6. 설계·구현 중 고친 것들
 | 버그 | 원인 | 해결 |
 |---|---|---|
 | 운동이 적은 주에 주간 보스 HP 가 맞지 않음 | HP 를 항상 "운동 횟수 − 1" 로 계산 | 운동 3회 이상일 때만 −1 (여유 1회), 그보다 적으면 횟수 그대로 |

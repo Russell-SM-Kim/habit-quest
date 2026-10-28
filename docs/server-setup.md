@@ -2,13 +2,17 @@
 
 PC 는 24시간 켜져 있다고 가정. 순서대로 한 번만 하면 된다.
 
-## 1. Java 17
-- [Adoptium Temurin 17](https://adoptium.net) 설치 (MSI, "Set JAVA_HOME" 체크).
-- 확인: `java -version`
+## 1. Java 21
+cmd 에서:
+```
+winget install EclipseAdoptium.Temurin.21.JDK
+```
+**새 cmd 창**을 열고 `java -version` → `21.x` 가 나오면 성공.
+(Android Studio 안의 Java 는 PATH 에 잡혀 있지 않아서 서버 실행에 쓸 수 없다)
 
 ## 2. PostgreSQL
-- [PostgreSQL 16 Windows 설치 파일](https://www.postgresql.org/download/windows/) 실행. 슈퍼유저(postgres) 비밀번호를 기억.
-- 포트 5432 기본값 그대로.
+- [PostgreSQL Windows 설치 파일 (18 에서 확인)](https://www.postgresql.org/download/windows/) 실행. 슈퍼유저(postgres) 비밀번호를 기억.
+- 포트 5432 기본값 그대로. 설치 끝에 뜨는 Stack Builder 는 필요 없으니 Cancel.
 
 ## 3. DB 와 사용자 만들기
 시작 메뉴 → **SQL Shell (psql)** → postgres 로 로그인 후:
@@ -21,11 +25,10 @@ CREATE DATABASE lifereset OWNER lifereset;
 테이블은 서버가 처음 켜질 때 자동으로 만든다.
 
 ## 4. 서버 jar 만들기
-Android Studio 터미널(또는 cmd)에서 프로젝트 폴더로 이동:
+Android Studio 에서 **Ctrl 두 번** (Run Anything) → `gradle :server:buildFatJar` → 엔터.
 
-```
-gradlew.bat -PserverOnly=true :server:buildFatJar
-```
+(터미널의 `gradlew.bat` 은 PC 기본 Java 로 돌아서, Java 버전에 따라 Gradle 이 실행되지 않을 수 있다.
+Run Anything 은 Android Studio 에 설정한 Gradle JDK 로 실행된다)
 
 결과: `server\build\libs\life-reset-server.jar`
 

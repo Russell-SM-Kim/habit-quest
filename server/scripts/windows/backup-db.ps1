@@ -5,7 +5,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$PgBin     = "C:\Program Files\PostgreSQL\16\bin"     # PostgreSQL 설치 경로에 맞게
+$PgBin     = "C:\Program Files\PostgreSQL\18\bin"     # PostgreSQL 설치 경로에 맞게
 $BackupDir = "C:\life-reset\backups"
 $DbName    = "lifereset"
 $DbUser    = "lifereset"
