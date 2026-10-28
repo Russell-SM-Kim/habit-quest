@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>오늘 · 일일 퀘스트</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Semi+Condensed:wght@500;600;700&amp;family=Noto+Sans+KR:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3E4146}a:hover{color:#1A1A1A}
+</style>
+</helmet>
+<div style="--a: {{accent}}; position: relative; width: 412px; height: 915px; box-sizing: border-box; background: #6F8AA3; color: #3E4146; font-family: 'Noto Sans KR', sans-serif; overflow: hidden">
+
+<div aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden">
+<div style="position: absolute; left: -60px; top: -60px; width: 540px; height: 360px; background: #4E6A86; filter: blur(50px)"></div>
+<div style="position: absolute; left: 180px; top: 160px; width: 300px; height: 220px; border-radius: 150px; background: #F2E6D0; filter: blur(55px); opacity: 0.85"></div>
+<div style="position: absolute; left: -80px; top: 380px; width: 320px; height: 200px; border-radius: 160px; background: #DCE3EA; filter: blur(45px); opacity: 0.9"></div>
+<div style="position: absolute; left: 160px; top: 560px; width: 340px; height: 220px; border-radius: 170px; background: #C9D3DD; filter: blur(50px); opacity: 0.9"></div>
+<div style="position: absolute; left: -40px; top: 740px; width: 520px; height: 260px; background: #56677A; filter: blur(50px)"></div>
+</div>
+
+<div style="position: relative; height: 100%; display: flex; flex-direction: column">
+
+<header style="padding: 30px 20px 0; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: flex-end">
+<h1 style="margin: 0; font-family: 'Saira Semi Condensed', sans-serif; font-size: 40px; font-weight: 700; line-height: 1; color: #FFFFFF; text-shadow: 0 2px 10px rgba(30, 45, 60, 0.45)">Day 23<span style="font-size: 22px; font-weight: 500"> / 66</span></h1>
+<span style="font-family: 'Saira Semi Condensed', sans-serif; font-size: 16px; font-weight: 600; color: #FFFFFF; text-shadow: 0 1px 6px rgba(30, 45, 60, 0.5)">08:12:44 남음</span>
+</div>
+<div aria-hidden="true" style="height: 8px; background: rgba(255, 255, 255, 0.35); border: 1px solid rgba(255, 255, 255, 0.85)"><div style="width: 35%; height: 100%; background: rgba(255, 255, 255, 0.95)"></div></div>
+</header>
+
+<main style="flex: 1; min-height: 0; padding: 14px 16px 8px; display: flex; flex-direction: column; gap: 10px">
+
+<section aria-label="플레이어" style="background: rgba(246, 247, 249, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.9); box-shadow: 0 6px 20px rgba(20, 30, 45, 0.22); clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px); padding: 12px 16px 14px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 8px; border-bottom: 1.5px solid #8C9097">
+<span style="font-family: 'Saira Semi Condensed', 'Noto Sans KR', sans-serif; font-size: 22px; font-weight: 600; color: #4A4D53">[이름]</span>
+<span style="font-family: 'Saira Semi Condensed', sans-serif; font-size: 14px; font-weight: 600; color: #6B6F76">LV: <span style="font-size: 22px; color: #3E4146">7</span></span>
+</div>
+<div style="display: flex; align-items: center; gap: 10px; margin-top: 10px">
+<span style="font-family: 'Saira Semi Condensed', sans-serif; font-size: 14px; font-weight: 600; color: #5A5E65; width: 30px">EXP</span>
+<div aria-hidden="true" style="flex: 1; height: 10px; background: #D5D8DC; border: 1px solid #A9ADB3; transform: skewX(-25deg)"><div style="width: 62%; height: 100%; background: #8CC63F"></div></div>
+<span style="font-family: 'Saira Semi Condensed', sans-serif; font-size: 15px; font-weight: 600; color: #3E4146">1240 / 2000</span>
+</div>
+<div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #5A5E65">
+<span>러너 · E랭크</span>
+<span>23일 연속 · 보호권 2</span>
+</div>
+</section>
+
+<section aria-labelledby="dq" style="background: rgba(246, 247, 249, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.9); box-shadow: 0 6px 20px rgba(20, 30, 45, 0.22); clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px)">
+<div style="padding: 12px 16px 0; text-align: center">
+<h2 id="dq" style="margin: 0; padding-bottom: 8px; border-bottom: 1.5px solid #8C9097; font-family: 'Saira Semi Condensed', sans-serif; font-size: 22px; font-weight: 600; color: #4A4D53">Daily Quest</h2>
+</div>
+<ul style="list-style: none; margin: 0; padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{quests}}" as="q" hint-placeholder-count="6">
+<li style="{{q.row}}">
+<span style="{{q.icon}}">
+<sc-if value="{{q.done}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></sc-if>
+<sc-if value="{{q.todo}}" hint-placeholder-val="{{false}}"><span style="font-family: 'Saira Semi Condensed', sans-serif; font-size: 11px; font-weight: 700">{{q.code}}</span></sc-if>
+</span>
+<div style="flex: 1; display: flex; flex-direction: column; min-width: 0">
+<span style="{{q.titleStyle}}">{{q.title}}</span>
+<span style="{{q.subStyle}}">{{q.sub}}</span>
+</div>
+<span style="{{q.rightStyle}}">{{q.right}}</span>
+</li>
+</sc-for>
+</ul>
+<div style="display: flex; justify-content: space-between; padding: 9px 16px; background: rgba(200, 204, 209, 0.6); font-size: 12px; color: #4A4D53">
+<span>완료 <span style="font-family: 'Saira Semi Condensed', sans-serif; font-size: 16px; font-weight: 700">3 / 6</span></span>
+<span>전부 끝내면 보너스 <span style="font-family: 'Saira Semi Condensed', sans-serif; font-size: 15px; font-weight: 700">+30 EXP</span></span>
+</div>
+</section>
+
+<section aria-label="주간 보스" style="display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(120, 128, 140, 0.55); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.6)">
+<span style="font-family: 'Saira Semi Condensed', 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 600; color: #FFFFFF; width: 92px">미루기 슬라임</span>
+<div aria-hidden="true" style="flex: 1; height: 9px; background: rgba(40, 44, 50, 0.6); border: 1px solid rgba(255, 255, 255, 0.8); transform: skewX(-25deg)"><div style="width: 40%; height: 100%; background: #E04848"></div></div>
+<span style="font-family: 'Saira Semi Condensed', sans-serif; font-size: 14px; font-weight: 600; color: #FFFFFF">HP 2/5</span>
+</section>
+</main>
+
+<nav aria-label="주요 메뉴" style="flex-shrink: 0; display: flex; justify-content: space-around; padding: 6px 10px 20px">
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="4">
+<a href="{{n.href}}" style="{{n.link}}">
+<span style="{{n.ring}}"><span style="{{n.disc}}">
+<sc-if value="{{n.home}}" hint-placeholder-val="{{true}}"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5 2 10.5V21a1 1 0 0 0 1 1h6v-7h6v7h6a1 1 0 0 0 1-1V10.5z"></path></svg></sc-if>
+<sc-if value="{{n.user}}" hint-placeholder-val="{{false}}"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4.5"></circle><path d="M3.5 21a8.5 8.5 0 0 1 17 0z"></path></svg></sc-if>
+<sc-if value="{{n.cal}}" hint-placeholder-val="{{false}}"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2h2v3H7zM15 2h2v3h-2z"></path><path d="M4 5h16a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1 6v9h14v-9z"></path></svg></sc-if>
+<sc-if value="{{n.cog}}" hint-placeholder-val="{{false}}"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10.3 2h3.4l.5 2.6 1.9.8 2.2-1.5 2.4 2.4-1.5 2.2.8 1.9 2.6.5v3.4l-2.6.5-.8 1.9 1.5 2.2-2.4 2.4-2.2-1.5-1.9.8-.5 2.6h-3.4l-.5-2.6-1.9-.8-2.2 1.5-2.4-2.4 1.5-2.2-.8-1.9L2 13.7v-3.4l2.6-.5.8-1.9-1.5-2.2 2.4-2.4 2.2 1.5 1.9-.8zM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"></path></svg></sc-if>
+</span></span>
+<span>{{n.label}}</span>
+</a>
+</sc-for>
+</nav>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F0B400","options":["#F0B400","#4DA3E8","#7DC21E","#E04848"]},"$preview":{"width":412,"height":915}}'>
+class Component extends DCLogic {
+renderVals() {
+var raw = [
+  ['아침 물 한 잔', 'VIT · 쉬움', '1회', true, 'VIT'],
+  ['7시 전 기상', 'WIL · 보통', '06:48', true, 'WIL'],
+  ['맨몸 근력 서킷', 'STR · 푸시업 3×8 · 스쿼트 3×15', '', true, 'STR'],
+  ['독서', 'INT · 목표 20분', '0/20분', false, 'INT'],
+  ['명상', 'WIL · 목표 10분', '0/10분', false, 'WIL'],
+  ['취침 1시간 전 폰 금지', 'WIL · VIT', '22:00~', false, 'WIL']
+];
+var focus = 3;
+var quests = raw.map(function (r, i) {
+  var done = r[3], sel = i === focus;
+  return {
+    title: r[0], sub: r[1], done: done, todo: !done, code: r[4],
+    right: done ? 'Clear' : r[2],
+    row: 'display: flex; align-items: center; gap: 12px; padding: 0 12px; min-height: 50px; background: ' + (sel ? 'var(--a)' : 'rgba(222, 224, 228, 0.88)') + '; border: 1px solid ' + (sel ? 'var(--a)' : 'rgba(255, 255, 255, 0.95)'),
+    icon: 'width: 32px; height: 32px; flex-shrink: 0; box-sizing: border-box; border-radius: 16px; display: flex; align-items: center; justify-content: center; ' + (sel ? 'background: #FFFFFF; color: #3E4146' : 'background: #3E4146; color: #FFFFFF; box-shadow: 0 0 0 2px rgba(255,255,255,0.9)'),
+    titleStyle: "font-family: 'Saira Semi Condensed', 'Noto Sans KR', sans-serif; font-size: 16px; font-weight: " + (sel ? 700 : 600) + '; color: ' + (sel ? '#FFFFFF' : (done ? '#8C9097' : '#3E4146')) + (sel ? '; text-shadow: 0 1px 2px rgba(0,0,0,0.3)' : '') + (done ? '; text-decoration: line-through' : ''),
+    subStyle: 'font-size: 11px; color: ' + (sel ? '#FFFFFF' : '#6B6F76'),
+    rightStyle: "font-family: 'Saira Semi Condensed', sans-serif; font-size: 15px; font-weight: 600; color: " + (sel ? '#FFFFFF' : (done ? '#8C9097' : '#3E4146'))
+  };
+});
+var items = [['Main.dc.html', '오늘', 'home'], ['Status.dc.html', '상태', 'user'], ['Record.dc.html', '기록', 'cal'], ['#', '설정', 'cog']];
+var nav = items.map(function (it, i) {
+  var on = i === 0;
+  return {
+    href: it[0], label: it[1], home: it[2] === 'home', user: it[2] === 'user', cal: it[2] === 'cal', cog: it[2] === 'cog',
+    link: 'display: flex; flex-direction: column; align-items: center; gap: 5px; text-decoration: none; font-size: 12px; font-weight: ' + (on ? 700 : 500) + '; color: #FFFFFF; text-shadow: 0 1px 4px rgba(20,30,45,0.6)',
+    ring: 'width: 62px; height: 62px; box-sizing: border-box; border-radius: 31px; border: 2px solid ' + (on ? 'var(--a)' : 'rgba(255, 255, 255, 0.85)') + '; display: flex; align-items: center; justify-content: center' + (on ? '; box-shadow: 0 0 12px var(--a)' : ''),
+    disc: 'width: 52px; height: 52px; border-radius: 26px; display: flex; align-items: center; justify-content: center; ' + (on ? 'background: var(--a); color: #FFFFFF' : 'background: rgba(228, 229, 231, 0.88); color: #6B6F76')
+  };
+});
+return { accent: this.props.accent ?? '#F0B400', quests: quests, nav: nav };
+}
+}
+</script>
+</body>
+</html>
