@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 앱이 뜨는 순간 보이는 바탕 (Compose 하늘 배경의 평균색과 맞춤) -->
+    <color name="background">#FF8FA9C2</color>
+    <!-- 런처 아이콘 -->
+    <color name="icon_background">#FF8FB4D6</color>
+    <color name="icon_disc">#FF3E4146</color>
+    <color name="icon_ring">#FFFFFFFF</color>
+</resources>
