@@ -1,10 +1,8 @@
 package com.lifereset.core.designsystem.fx
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -129,23 +127,26 @@ private fun StatGainGrid(gains: Map<Stat, Int>, revealed: Int) {
                     val index = rowIndex * 3 + colIndex
                     val gain = gains[stat] ?: 0
                     val highlight = gain == best && best > 1
-                    Box(Modifier.weight(1f)) {
-                        AnimatedVisibility(
-                            visible = index < revealed,
-                            enter = fadeIn(tween(160)) + slideInVertically(tween(160)) { it / 2 },
-                        ) {
-                            Row(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .background(if (highlight) colors.accent.copy(alpha = 0.18f) else colors.row)
-                                    .border(1.dp, if (highlight) colors.accent else colors.rowBorder)
-                                    .padding(horizontal = 10.dp, vertical = 8.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                Text(stat.code, style = LrTheme.type.code, color = colors.textSecondary)
-                                Text("+$gain", style = LrTheme.type.number.copy(fontSize = 16.sp), color = colors.textPrimary)
+                    // 한 칸씩 아래에서 떠오르며 나타난다
+                    val shown by animateFloatAsState(
+                        targetValue = if (index < revealed) 1f else 0f,
+                        animationSpec = tween(160),
+                        label = "statGain$index",
+                    )
+                    Row(
+                        Modifier
+                            .weight(1f)
+                            .graphicsLayer {
+                                alpha = shown
+                                translationY = (1f - shown) * 12.dp.toPx()
                             }
-                        }
+                            .background(if (highlight) colors.accent.copy(alpha = 0.18f) else colors.row)
+                            .border(1.dp, if (highlight) colors.accent else colors.rowBorder)
+                            .padding(horizontal = 10.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(stat.code, style = LrTheme.type.code, color = colors.textSecondary)
+                        Text("+$gain", style = LrTheme.type.number.copy(fontSize = 16.sp), color = colors.textPrimary)
                     }
                 }
             }
