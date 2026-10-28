@@ -9,10 +9,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 
-/** 서버 주소와 API 키. 폰에만 저장되고 서버로 올라가지 않는다. */
-data class ServerConfig(val baseUrl: String, val apiKey: String) {
-    val isValid: Boolean get() = baseUrl.startsWith("http") && apiKey.length >= 16
+/** 서버 주소 + 로그인 세션 토큰. 폰에만 저장되고 서버로 올라가지 않는다. */
+data class ServerConfig(val baseUrl: String, val sessionToken: String) {
+    val isValid: Boolean get() = baseUrl.startsWith("http") && sessionToken.isNotBlank()
 }
+
+/** 로그인한 Google 계정 (화면 표시용). */
+data class Account(val email: String, val displayName: String)
 
 data class SyncStatus(val lastSyncAt: Long?, val ok: Boolean, val message: String) {
     companion object {
@@ -28,9 +31,18 @@ interface SettingsRepository {
     val playerName: Flow<String>
     suspend fun setPlayerName(name: String)
 
-    val serverConfig: Flow<ServerConfig?>
+    /** 서버 주소 (예: https://내PC.tailnet.ts.net). 로그인 전에도 저장된다. */
+    val serverUrl: Flow<String>
+    suspend fun serverUrl(): String
+    suspend fun setServerUrl(url: String)
+
+    /** 로그인한 계정. 로그아웃 상태면 null. */
+    val account: Flow<Account?>
+
+    /** 주소 + 세션 토큰. 로그인 전이면 null. 동기화는 이 값만 본다. */
     suspend fun serverConfig(): ServerConfig?
-    suspend fun setServerConfig(config: ServerConfig)
+    suspend fun setSession(token: String, account: Account)
+    suspend fun clearSession()
 
     val syncStatus: Flow<SyncStatus>
     suspend fun setSyncStatus(status: SyncStatus)
@@ -52,7 +64,9 @@ internal object SettingKeys {
     const val GAME_START = "game_start" // 서버와 공유
     const val PLAYER_NAME = "player_name"
     const val SERVER_URL = "server_url"
-    const val API_KEY = "api_key"
+    const val SESSION_TOKEN = "session_token"
+    const val ACCOUNT_EMAIL = "account_email"
+    const val ACCOUNT_NAME = "account_name"
     const val LAST_PULL = "last_pull"
     const val SYNC_AT = "sync_at"
     const val SYNC_OK = "sync_ok"
@@ -82,21 +96,37 @@ internal class LocalSettingsRepository(
 
     override suspend fun setPlayerName(name: String) = put(SettingKeys.PLAYER_NAME, name.trim())
 
-    override val serverConfig: Flow<ServerConfig?> = combine(
-        dao.observe(SettingKeys.SERVER_URL),
-        dao.observe(SettingKeys.API_KEY),
-    ) { url, key -> if (url == null || key == null) null else ServerConfig(url.value, key.value) }
+    override val serverUrl: Flow<String> =
+        dao.observe(SettingKeys.SERVER_URL).map { it?.value.orEmpty() }
 
-    override suspend fun serverConfig(): ServerConfig? {
-        val url = dao.get(SettingKeys.SERVER_URL)?.value ?: return null
-        val key = dao.get(SettingKeys.API_KEY)?.value ?: return null
-        return ServerConfig(url, key)
+    override suspend fun serverUrl(): String = dao.get(SettingKeys.SERVER_URL)?.value.orEmpty()
+
+    override suspend fun setServerUrl(url: String) = put(SettingKeys.SERVER_URL, url.trim().trimEnd('/'))
+
+    override val account: Flow<Account?> = combine(
+        dao.observe(SettingKeys.ACCOUNT_EMAIL),
+        dao.observe(SettingKeys.ACCOUNT_NAME),
+    ) { email, name ->
+        email?.value?.takeIf { it.isNotBlank() }?.let { Account(it, name?.value.orEmpty()) }
     }
 
-    override suspend fun setServerConfig(config: ServerConfig) {
-        put(SettingKeys.SERVER_URL, config.baseUrl.trim().trimEnd('/'))
-        put(SettingKeys.API_KEY, config.apiKey.trim())
-        sync.requestSync()
+    override suspend fun serverConfig(): ServerConfig? {
+        val url = serverUrl().takeIf { it.isNotBlank() } ?: return null
+        val token = dao.get(SettingKeys.SESSION_TOKEN)?.value?.takeIf { it.isNotBlank() } ?: return null
+        return ServerConfig(url, token)
+    }
+
+    override suspend fun setSession(token: String, account: Account) {
+        put(SettingKeys.SESSION_TOKEN, token)
+        put(SettingKeys.ACCOUNT_NAME, account.displayName)
+        put(SettingKeys.ACCOUNT_EMAIL, account.email)
+    }
+
+    override suspend fun clearSession() {
+        put(SettingKeys.SESSION_TOKEN, "")
+        put(SettingKeys.ACCOUNT_EMAIL, "")
+        put(SettingKeys.ACCOUNT_NAME, "")
+        put(SettingKeys.LAST_PULL, "0")
     }
 
     override val syncStatus: Flow<SyncStatus> = combine(

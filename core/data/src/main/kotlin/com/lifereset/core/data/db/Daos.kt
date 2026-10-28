@@ -31,6 +31,10 @@ interface QuestDao {
     /** 올리는 사이에 또 고쳐졌다면(updatedAt 이 다르면) dirty 를 유지한다. */
     @Query("UPDATE quests SET dirty = 0 WHERE id = :id AND updatedAt = :updatedAt")
     suspend fun markClean(id: String, updatedAt: Long)
+
+    /** 다른 계정으로 로그인했을 때: 이 폰의 퀘스트를 전부 새 계정으로 올리기 위해 */
+    @Query("UPDATE quests SET dirty = 1")
+    suspend fun markAllDirty()
 }
 
 @Dao
@@ -52,6 +56,9 @@ interface CompletionDao {
 
     @Query("UPDATE completions SET dirty = 0 WHERE id = :id AND updatedAt = :updatedAt")
     suspend fun markClean(id: String, updatedAt: Long)
+
+    @Query("UPDATE completions SET dirty = 1")
+    suspend fun markAllDirty()
 }
 
 @Dao
