@@ -77,8 +77,17 @@ data class PullResponse(
     val serverTime: Long,
 )
 
+/**
+ * 연결 확인. googleClientId 는 서버에 설정된 Google 웹 클라이언트 ID.
+ * 앱은 이 값으로 Google 로그인을 하므로, 클라이언트 ID 를 앱에 따로 넣을 필요가 없다.
+ */
 @Serializable
-data class HealthDto(val ok: Boolean, val serverTime: Long, val version: String)
+data class HealthDto(
+    val ok: Boolean,
+    val serverTime: Long,
+    val version: String,
+    val googleClientId: String? = null,
+)
 
 /** 서버가 같은 엔진으로 계산한 요약. 앱 계산과 비교해 검산하는 용도. */
 @Serializable

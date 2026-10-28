@@ -33,6 +33,7 @@ dependencies {
     implementation(libs.postgresql)
     implementation(libs.hikari)
     implementation(libs.logback.classic)
+    implementation(libs.google.api.client) // Google 로그인 토큰 검증
 
     testImplementation(libs.ktor.server.test.host)
 }

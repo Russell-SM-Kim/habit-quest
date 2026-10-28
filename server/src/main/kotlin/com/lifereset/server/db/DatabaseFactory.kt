@@ -24,7 +24,7 @@ object DatabaseFactory {
         )
         val database = Database.connect(dataSource)
         transaction(database) {
-            SchemaUtils.createMissingTablesAndColumns(QuestsTable, CompletionsTable, SettingsTable)
+            SchemaUtils.createMissingTablesAndColumns(UsersTable, SessionsTable, QuestsTable, CompletionsTable, SettingsTable)
         }
         return database
     }
