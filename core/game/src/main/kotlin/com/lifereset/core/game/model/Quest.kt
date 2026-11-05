@@ -23,6 +23,8 @@ enum class QuestUnit(val label: String) {
     MINUTES("분"),
     KM("km"),
     REPS("회"),
+    LITERS("L"),
+    HOURS("시간"),
 }
 
 /** "20분", "3km" 같은 수치 목표. 없으면 체크만 하는 퀘스트다. */

@@ -52,6 +52,27 @@ class GameEngineTest {
     }
 
     @Test
+    fun `시작일을 바꾸면 그 전 기록은 계산에서 빠진다`() {
+        val restart = start.plusDays(10)
+        val old = completeDays(start, 10) // 테스트로 쌓인 기록
+        val state = engine.compute(EngineInput(restart, restart, quests, old))
+        assertEquals(1, state.level)
+        assertEquals(0L, state.totalXp)
+        assertEquals(0, state.streak)
+        assertEquals(1, state.season.day)
+        assertEquals(0, state.totalCompletions)
+    }
+
+    @Test
+    fun `시작일이 내일이면 오늘은 1일차로 보이고 오늘 기록도 빠진다`() {
+        val today = start.plusDays(3)
+        val tomorrow = today.plusDays(1)
+        val state = engine.compute(EngineInput(tomorrow, today, quests, completeAll(today)))
+        assertEquals(1, state.season.day)
+        assertEquals(1, state.level)
+    }
+
+    @Test
     fun `7일 연속 완벽하면 연속 7일과 보호권 1장`() {
         val today = start.plusDays(7)
         val state = run(today, completeDays(start, 7))
