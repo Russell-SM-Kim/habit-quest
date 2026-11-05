@@ -140,11 +140,11 @@ class GameEngineTest {
 
     @Test
     fun `많이 한 활동의 스탯이 더 오른다`() {
-        // 독서만 계속하면 INT 가 가장 높아진다
-        val reading = quests.first { it.id == "q-reading" }
+        // 임베디드 공부만 계속하면 INT 가 가장 높아진다
+        val reading = quests.first { it.id == "q-embedded" }
         val completions = (0L until 20L).map { day ->
             val date = start.plusDays(day)
-            Completion.of(reading, date, millis(date), amount = 40.0)
+            Completion.of(reading, date, millis(date), amount = 4.0)
         }
         val state = run(start.plusDays(20), completions)
         val top = state.stats.maxBy { it.value }.key

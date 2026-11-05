@@ -28,6 +28,14 @@ interface QuestRepository {
 
     /** 처음 실행이면 기본 퀘스트를 넣는다. */
     suspend fun seedIfEmpty(startDate: LocalDate)
+
+    /**
+     * 기본 퀘스트(내 루틴)로 맞춘다.
+     * - 루틴에 있는 퀘스트: 같은 id 면 내용을 루틴대로 덮어쓰고, 없으면 새로 만든다 (중복 안 생김)
+     * - 예전 기본 퀘스트 중 루틴에서 빠진 것(독서·명상): 보관 (과거 기록은 그대로)
+     * - 내가 직접 만든 퀘스트: 건드리지 않는다
+     */
+    suspend fun applyDefaultRoutine(today: LocalDate)
 }
 
 internal class OfflineQuestRepository(
@@ -51,6 +59,19 @@ internal class OfflineQuestRepository(
     }
 
     override suspend fun nextSortOrder(): Int = dao.maxSortOrder() + 1
+
+    override suspend fun applyDefaultRoutine(today: LocalDate) {
+        val now = time.nowMillis()
+        val routine = DefaultQuests.create(today).map { quest ->
+            val existing = dao.get(quest.id)?.toDomain()
+            quest.copy(createdOn = existing?.createdOn ?: today, archivedOn = null)
+        }
+        val retired = DefaultQuests.RETIRED_IDS.mapNotNull { id ->
+            dao.get(id)?.toDomain()?.takeIf { it.archivedOn == null }?.copy(archivedOn = today)
+        }
+        dao.upsertAll((routine + retired).map { it.toEntity(updatedAt = now, dirty = true) })
+        sync.requestSync()
+    }
 
     override suspend fun seedIfEmpty(startDate: LocalDate) {
         if (dao.count() > 0) return
