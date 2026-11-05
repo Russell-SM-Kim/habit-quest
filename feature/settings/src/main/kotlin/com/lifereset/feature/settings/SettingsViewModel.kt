@@ -81,6 +81,15 @@ class SettingsViewModel(
         _message.value = if (uri == null) "기본 배경으로 되돌렸습니다" else "배경을 바꿨습니다"
     }
 
+    /**
+     * 새로 시작: 시작일을 바꾼다. 그 전 기록은 지우지 않고 계산에서만 빠진다.
+     * 레벨·EXP·연속 기록이 모두 처음부터, 66일도 이 날을 1일차로 다시 센다. 서버에도 동기화된다.
+     */
+    fun restartFrom(date: LocalDate) = viewModelScope.launch {
+        settings.setGameStart(date)
+        _message.value = "${date.monthValue}월 ${date.dayOfMonth}일을 1일차로 새로 시작합니다"
+    }
+
     fun setSound(enabled: Boolean) = viewModelScope.launch { settings.setSoundEnabled(enabled) }
 
     /** 주소 저장 + 연결 확인. */

@@ -35,7 +35,9 @@ import com.lifereset.core.designsystem.component.SwitchRow
 import com.lifereset.core.designsystem.component.SystemDialog
 import com.lifereset.core.designsystem.icon.LrIcons
 import com.lifereset.core.designsystem.theme.LrTheme
+import com.lifereset.core.designsystem.component.SegmentedRow
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.util.Date
 import java.util.Locale
 
@@ -58,6 +60,7 @@ fun SettingsRoute(
     val account by viewModel.account.collectAsStateWithLifecycle()
     var confirmRestore by remember { mutableStateOf(false) }
     var showServer by remember { mutableStateOf(false) }
+    var confirmRestart by remember { mutableStateOf(false) }
     val colors = LrTheme.colors
     val context = LocalContext.current
 
@@ -87,6 +90,7 @@ fun SettingsRoute(
                     LrTextField(form.name, { v -> viewModel.edit { it.copy(name = v) } })
                 }
                 LrWideButton("이름 저장", onClick = { viewModel.saveName() }, icon = LrIcons.Check)
+                LrWideButton("시작일 바꾸기 (새로 시작)", onClick = { confirmRestart = true }, icon = LrIcons.Calendar)
             }
         }
 
@@ -161,6 +165,37 @@ fun SettingsRoute(
                     }
                     LrWideButton("주소 저장하고 연결 확인", onClick = { viewModel.saveServer() }, icon = LrIcons.Confirm)
                 }
+            }
+        }
+    }
+
+    if (confirmRestart) {
+        val today = LocalDate.now()
+        val choices = listOf(today, today.plusDays(1))
+        var picked by remember { mutableStateOf(choices[1]) }
+        SystemDialog(
+            title = "NEW START",
+            onDismiss = { confirmRestart = false },
+            onConfirm = {
+                confirmRestart = false
+                viewModel.restartFrom(picked)
+            },
+            confirmLabel = "시작",
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                SegmentedRow(
+                    options = choices,
+                    selected = picked,
+                    onSelect = { picked = it },
+                    label = { if (it == today) "오늘" else "내일" },
+                    subLabel = { "${it.monthValue}/${it.dayOfMonth}" },
+                )
+                Text(
+                    "이 날이 시즌 1 · Day 1 이 됩니다. 레벨·EXP·연속 기록은 처음부터 시작하고, " +
+                        "그 전 기록은 지우지 않고 계산에서만 빠집니다. 퀘스트 목록은 그대로예요.",
+                    style = LrTheme.type.body,
+                    color = colors.textPrimary,
+                )
             }
         }
     }
