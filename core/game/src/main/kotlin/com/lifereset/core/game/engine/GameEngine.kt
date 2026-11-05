@@ -73,7 +73,10 @@ private class Replay(
     private var todayState: TodayState? = null
 
     fun run(): PlayerState {
-        val byDate = input.completions.filterNot { it.voided }.groupBy { it.date }
+        // 시작일 이전 기록은 계산하지 않는다 (시작일을 바꿔 '새로 시작'한 경우, 내일부터 시작으로 잡은 오늘 밤 기록 등)
+        val byDate = input.completions
+            .filter { !it.voided && !it.date.isBefore(input.gameStart) }
+            .groupBy { it.date }
         var date = start
         while (!date.isAfter(input.today)) {
             processDay(date, byDate[date].orEmpty())
